@@ -273,7 +273,8 @@ def no_real_state_move(monkeypatch):
     # (desktop/migrate.py), in the home folder. A test that reaches it with the default instance's settings must never
     # move the user's real folders: it fails instead. Tests of the move give it a home folder of their own. The notebook
     # side's tests (tests/api) run where the engine's code cannot be imported, nor the move reached.
-    if importlib.util.find_spec("fastapi") is None:
+    # Nor on Windows: the desktop route is not for it (its move takes file locks with fcntl), so nothing is moved there.
+    if importlib.util.find_spec("fastapi") is None or importlib.util.find_spec("fcntl") is None:
         return
     from sopa_companion.desktop import migrate
     real = migrate.migrate

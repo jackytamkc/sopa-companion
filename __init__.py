@@ -24,7 +24,9 @@ from __future__ import annotations
 # macOS 14 with Apple silicon (2.15 needs macOS 15 for Apple's GPU; later macOS takes the newest), an export with the
 # model's outlines is timed per patch and says each patch in its dialog, and the model list shows a spinner as it loads.
 # 0.6.2: the first public release: the app's own code under the BSD 3-Clause licence (LICENSE; proseg-live stays GPL v3).
-__version__ = "0.6.2"
+# 0.7.0: on PyPI, with proseg-live 3.2.0.3 (the same program, its package without the classifier that forbade the
+# upload): pip install "sopa-companion[all]" is the whole install, and the release workflow publishes both there.
+__version__ = "0.7.0"
 PROTOCOL = "sopa-companion 1.0"
 # What `sopa_companion.<name>` gives a notebook (api/__init__.py), and sopa's companion extra (sopa.companionapp).
 _API = ("launch", "CompanionApp", "CompanionError", "CompanionStartError", "CompanionWarning", "SOPA_API")

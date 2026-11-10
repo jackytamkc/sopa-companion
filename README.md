@@ -21,8 +21,8 @@ sample on an NVIDIA GPU, or on a Mac's own GPU), **Go deeper** for one cell, a q
 square, other segmentations of the sample drawn on the tissue, and **Compare**, which reads several segmentations side
 by side with the same model, each on its own UMAP and clusters (lined up with the run's) or all on one shared map.
 
-How it is built: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). Working on the app itself:
-[docs/DEVELOPING.md](docs/DEVELOPING.md).
+How it is built: [docs/ARCHITECTURE.md](https://github.com/jackytamkc/sopa-companion/blob/main/docs/ARCHITECTURE.md). Working on the app itself:
+[docs/DEVELOPING.md](https://github.com/jackytamkc/sopa-companion/blob/main/docs/DEVELOPING.md).
 
 ## Quick start
 
@@ -74,8 +74,6 @@ your computer). **Close** in the app, or `app.close()`, ends the session. The re
   second for a region of a few thousand cells, every 3-5 s for a 40,000-cell sample), and faster on the GPU with RAPIDS
   (Linux only). Stain segmentation uses CUDA, or Apple's GPU on a Mac, when it can and falls back to the CPU (Apple's
   GPU with PyTorch 2.15 needs macOS 15 or later; on macOS 14 the install brings PyTorch 2.14).
-- **During the alpha** the app installs from this repository's releases, not from PyPI: the install lines download a
-  release with the [GitHub CLI](https://cli.github.com), logged in once with any GitHub account (`gh auth login`).
 
 ## Install
 
@@ -84,12 +82,13 @@ What every computer needs:
 - **conda**, if you have none yet: [Miniforge](https://conda-forge.org/download/) (conda with conda-forge's packages).
   Any environment with Python 3.12 or 3.13 does too, sopa's own included.
 
-Then follow the steps for your computer. Each section is complete; updating later is step 3 again.
+Then follow the steps for your computer. Each section is complete. To update later, in the same environment:
+`pip install --upgrade "sopa-companion[all]"`.
 
 ### macOS (Apple silicon: M1 or later)
 
-`uname -m` in Terminal says `arm64` on Apple silicon. On an Intel Mac it says `x86_64`: use
-[Another computer](#another-computer) for step 3.
+`uname -m` in Terminal says `arm64` on Apple silicon. On an Intel Mac it says `x86_64`: read
+[Another computer](#another-computer) before step 3.
 
 1. Miniforge, if you have no conda (in Terminal; answer yes when it offers to initialise conda, then open a new
    Terminal window):
@@ -99,21 +98,17 @@ Then follow the steps for your computer. Each section is complete; updating late
    bash Miniforge3-MacOSX-arm64.sh
    ```
 
-2. An environment with Python, the GitHub CLI and JupyterLab, then sign in to GitHub (choose GitHub.com, HTTPS, and
-   "Login with a web browser"):
+2. An environment with Python and JupyterLab:
 
    ```bash
-   conda create --name sopa -c conda-forge python=3.12 gh jupyterlab
+   conda create --name sopa -c conda-forge python=3.12 jupyterlab
    conda activate sopa
-   gh auth login
    ```
 
-3. The app, from the latest release (with sopa, Cellpose, PyTorch and the rest from PyPI; a few minutes):
+3. The app, from PyPI (with sopa, Cellpose, PyTorch and the rest; a few minutes):
 
    ```bash
-   d=$(mktemp -d)
-   gh release download --repo jackytamkc/sopa-companion --dir "$d" --pattern 'sopa_companion-*.whl' --pattern "proseg_live-*_$(uname -m).whl"
-   pip install "sopa-companion[all]" "$d"/sopa_companion-*.whl "$d"/proseg_live-*.whl
+   pip install "sopa-companion[all]"
    ```
 
 4. Check it: `sopa-companion --version` says the app's version and where its proseg-live is.
@@ -132,21 +127,17 @@ macOS 15 or later. On an M2 Ultra, Cellpose ran about 8 times as fast on Apple's
    Then open **Miniforge Prompt** from the Start menu, run `conda init powershell`, and close it. The steps below run
    in **PowerShell**; if it says running scripts is disabled, run
    `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` there once and open a new PowerShell window.
-2. An environment with Python, the GitHub CLI and JupyterLab, then sign in to GitHub (GitHub.com, HTTPS, "Login with a
-   web browser"):
+2. An environment with Python and JupyterLab:
 
    ```powershell
-   conda create --name sopa -c conda-forge python=3.12 gh jupyterlab
+   conda create --name sopa -c conda-forge python=3.12 jupyterlab
    conda activate sopa
-   gh auth login
    ```
 
-3. The app, from the latest release (a few minutes):
+3. The app, from PyPI (a few minutes):
 
    ```powershell
-   $d = New-Item -ItemType Directory -Path (Join-Path ([IO.Path]::GetTempPath()) ([guid]::NewGuid()))
-   gh release download --repo jackytamkc/sopa-companion --dir $d --pattern 'sopa_companion-*.whl' --pattern 'proseg_live-*_amd64.whl'
-   pip install "sopa-companion[all]" (Resolve-Path "$d\sopa_companion-*.whl") (Resolve-Path "$d\proseg_live-*.whl")
+   pip install "sopa-companion[all]"
    ```
 
 4. Check it: `sopa-companion --version`.
@@ -167,47 +158,36 @@ https://download.pytorch.org/whl/cu130`); the mixing check on a Windows GPU is n
    bash Miniforge3-$(uname)-$(uname -m).sh
    ```
 
-2. An environment with Python, the GitHub CLI and JupyterLab (or your sopa environment), then sign in to GitHub:
+2. An environment with Python and JupyterLab (or your sopa environment):
 
    ```bash
-   conda create --name sopa -c conda-forge python=3.12 gh jupyterlab
+   conda create --name sopa -c conda-forge python=3.12 jupyterlab
    conda activate sopa
-   gh auth login
    ```
 
-3. The app, from the latest release:
+3. The app, from PyPI:
 
    ```bash
-   d=$(mktemp -d)
-   gh release download --repo jackytamkc/sopa-companion --dir "$d" --pattern 'sopa_companion-*.whl' --pattern "proseg_live-*_$(uname -m).whl"
-   pip install "sopa-companion[all]" "$d"/sopa_companion-*.whl "$d"/proseg_live-*.whl
+   pip install "sopa-companion[all]"
    ```
 
 4. Check it: `sopa-companion --version`.
 5. Try it: `jupyter lab` (or your own Jupyter, VS Code or PyCharm with this environment's Python), then the
    [Quick start](#quick-start).
 
-### What the install lines do
+### What the install line does
 
-The first two lines download the latest release's two wheels: the app, and `proseg-live` (proseg 3.2.0 with live mode
-and proseg's own count of each cell, GPL v3) built for this computer. The last line installs them and, from PyPI,
-everything they need: sopa and spatialdata, Cellpose, PyTorch, and scvi-tools with scviva-tools for the mixing check.
-pip takes the app and proseg-live from those two files only, never from an index, so nothing of the same name that
-someone else uploads anywhere can come in their place.
+It installs two packages from [PyPI](https://pypi.org/project/sopa-companion/): the app, and `proseg-live` (proseg
+3.2.0 with live mode and proseg's own count of each cell, GPL v3) built for this computer, with everything they need:
+sopa and spatialdata, Cellpose, PyTorch, and scvi-tools with scviva-tools for the mixing check. The same files, with
+their checksums, are on each [release](https://github.com/jackytamkc/sopa-companion/releases) here.
 
 ### Another computer
 
-The release's proseg-live wheels are for Linux x86-64 and ARM64 with glibc 2.28 or newer, macOS 11 or newer on Apple
-silicon, and Windows x64. Elsewhere (an Intel Mac, say), build proseg-live from its source in the release instead: it
-needs Rust 1.88 or newer ([rustup.rs](https://rustup.rs)) and a C compiler (on a Mac, `xcode-select --install`). In
-step 3, take the app's wheel and proseg-live's source:
-
-```bash
-d=$(mktemp -d)
-gh release download --repo jackytamkc/sopa-companion --dir "$d" --pattern 'sopa_companion-*.whl'
-gh release download --repo jackytamkc/sopa-companion --dir "$d" --pattern 'proseg_live-*.tar.gz'
-pip install "sopa-companion[all]" "$d"/sopa_companion-*.whl "$d"/proseg_live-*.tar.gz
-```
+PyPI has proseg-live wheels for Linux x86-64 and ARM64 with glibc 2.28 or newer, macOS 11 or newer on Apple silicon,
+and Windows x64. Elsewhere (an Intel Mac, say) pip builds proseg-live from its source, which needs Rust 1.88 or newer
+([rustup.rs](https://rustup.rs)) and a C compiler (on a Mac, `xcode-select --install`): install those first, then
+step 3's line is the same.
 
 ### Optional extras
 
@@ -516,8 +496,10 @@ iteration's own draw of proseg's count, its tooltip saying so.
 - The app runs `proseg-live` as a separate program and talks to it through files and a control file; the
   `sopa-companion` package holds no GPL code. Its dependencies (FastAPI, uvicorn, numpy, zarr, sopa, spatialdata,
   Cellpose, scvi-tools, RAPIDS and others) are installed separately, each under its own licence.
-- **The app's own code** (everything outside `native/`) is under the BSD 3-Clause licence: see [LICENSE](LICENSE).
+- **The app's own code** (everything outside `native/`) is under the BSD 3-Clause licence: see
+  [LICENSE](https://github.com/jackytamkc/sopa-companion/blob/main/LICENSE).
 
-To cite the app, see [CITATION.cff](CITATION.cff) (GitHub's "Cite this repository"). Every release is archived on
+To cite the app, see [CITATION.cff](https://github.com/jackytamkc/sopa-companion/blob/main/CITATION.cff) (GitHub's
+"Cite this repository"). Every release is archived on
 Zenodo: [10.5281/zenodo.24116670](https://doi.org/10.5281/zenodo.24116670) names all versions and leads to each
 version's own DOI.

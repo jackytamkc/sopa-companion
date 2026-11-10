@@ -131,7 +131,8 @@ def test_the_apps_own_code_is_bsd_3_clause_and_the_citation_names_this_version(p
     licence = (ROOT / "LICENSE").read_text()
     assert licence.startswith("BSD 3-Clause License\n\nCopyright (c) ") and "Neither the name of the copyright holder" in licence
     readme = (ROOT / "README.md").read_text()
-    assert "is under the BSD 3-Clause licence: see [LICENSE](LICENSE)" in readme and "no licence chosen" not in readme
+    assert ("is under the BSD 3-Clause licence: see\n  "
+            "[LICENSE](https://github.com/jackytamkc/sopa-companion/blob/main/LICENSE)") in readme and "no licence chosen" not in readme
     citation = (ROOT / "CITATION.cff").read_text()
     assert f"\nversion: {__version__}\n" in citation and "\nlicense: BSD-3-Clause\n" in citation
     assert re.search(r"\ndate-released: \d{4}-\d{2}-\d{2}\n", citation)
@@ -222,16 +223,14 @@ def check_companion():
 
 def test_the_version_is_above_the_last_shipped_wheel():
     """A wheel built from this tree replaces an installed one of the last shipped version (pip installs a local
-    wheel only when its version differs from the installed one). The README installs the release's files as they are
-    named: the app and proseg-live from the two files downloaded (no index is ever asked for either), and where no
-    proseg-live wheel fits, proseg-live's source distribution in their place."""
+    wheel only when its version differs from the installed one), and PyPI takes each version's files once. The README
+    installs both packages from PyPI with one line."""
     from sopa_companion import __version__
-    from test_config_docs import INSTALL, SOURCE_BUILD
+    from test_config_docs import PYPI_INSTALL
     assert Version(__version__) > Version(LAST_SHIPPED)
     assert str(Version(__version__)) == __version__                    # a plain release number, as pip reads it
     lines = (ROOT / "README.md").read_text().splitlines()
-    for line in (*INSTALL, *SOURCE_BUILD):
-        assert any(text.strip() == line for text in lines), line
+    assert any(text.strip() == PYPI_INSTALL for text in lines)
 
 
 def test_proseg_live_is_its_own_gpl_package(project):
@@ -253,7 +252,9 @@ def test_proseg_live_is_its_own_gpl_package(project):
     assert maturin["bindings"] == "bin" and maturin["targets"] == [{"name": "proseg-live", "kind": "bin"}]
     assert maturin["strip"] is True and maturin["locked"] is True and maturin["sbom"] == {"rust": False}
     assert package["project"]["license"] == {"file": "LICENSE.md"} and package["project"]["readme"] == "PROSEG-LIVE.md"
-    assert "Private :: Do Not Upload" in package["project"]["classifiers"]
+    # Both packages are on PyPI, which refuses a classifier that forbids the upload.
+    for classifiers in (package["project"]["classifiers"], project["project"]["classifiers"]):
+        assert not [c for c in classifiers if c.startswith("Private ::")]
     pin = next(text for text in project["project"]["dependencies"] if canonicalize_name(Requirement(text).name) == "proseg-live")
     assert Requirement(pin).specifier == Requirement(check_companion().proseg_live_pin()).specifier
     page = (ROOT / "native/package/PROSEG-LIVE.md").read_text()

@@ -15,12 +15,14 @@ license-files = ["LICENSE"]
 # Zarr 3.4.1, the floor below, needs Python 3.12.
 requires-python = ">=3.12"
 dynamic = ["version"]
-classifiers = ["Programming Language :: Python :: 3.12", "Programming Language :: Python :: 3.13",
-               "Operating System :: POSIX :: Linux", "Private :: Do Not Upload"]
+classifiers = ["Development Status :: 3 - Alpha", "Intended Audience :: Science/Research",
+               "Topic :: Scientific/Engineering :: Bio-Informatics",
+               "Programming Language :: Python :: 3.12", "Programming Language :: Python :: 3.13",
+               "Operating System :: POSIX :: Linux", "Operating System :: MacOS", "Operating System :: Microsoft :: Windows"]
 # These floors admit a SoPA 2.2.11 environment (NumPy 2.4.6, PyArrow 26.0.0, Zarr 3.4.1). sopa itself is a
 # dependency (Cellpose comes with sopa[cellpose]), and so is proseg-live, the patched proseg's own package: 3.2.0.1
 # (the first patch that keeps proseg's own count) or a later patch on proseg 3.2.0, so pip replaces an installed 3.2.0.
-# During the alpha both packages come from a release's files, never from an index (README, Install).
+# Both packages are on PyPI (README, Install); each release here holds the same files.
 dependencies = [
   "sopa>=2.2.10", "proseg-live>=3.2.0.1,==3.2.0.*", "platformdirs>=4",
   "fastapi>=0.143.2", "uvicorn[standard]>=0.54.0", "orjson>=3.13.0", "zstandard>=0.25.0",
@@ -42,6 +44,11 @@ qc = ["scvi-tools>=1.5", "scviva-tools>=0.1.7", "torch>=2.1.1",
       'torch>=2.14,<2.15; sys_platform == "darwin" and platform_machine == "arm64" and "23." in platform_release']
 all = ["sopa-companion[sopa,stain,qc]>=0.1"]
 test = ["pytest>=8", "packaging>=24", "jupyter_client>=8", "ipykernel>=6.31"]
+
+[project.urls]
+Homepage = "https://github.com/jackytamkc/sopa-companion"
+Issues = "https://github.com/jackytamkc/sopa-companion/issues"
+Archive = "https://doi.org/10.5281/zenodo.24116670"
 
 [project.scripts]
 # `sopa-companion <command>`: the commands of `python -m sopa_companion` (serve, launch, stop, status, install-desktop).

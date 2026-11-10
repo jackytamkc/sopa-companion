@@ -191,17 +191,17 @@ def test_check_says_what_it_found_and_exits_with_it(tmp_path, monkeypatch, capsy
     assert check.main(["sdist"]) == 2 and check.main(["tarball", str(good)]) == 2
 
 
-def test_the_package_is_proseg_live_3_2_0_2_the_patch_that_exports_prosegs_own_count():
-    """proseg-live 3.2.0.2: proseg 3.2.0 (the crate native/build.sh pins) with the patch that adds proseg's own count to
+def test_the_package_is_proseg_live_3_2_0_3_the_patch_that_exports_prosegs_own_count():
+    """proseg-live 3.2.0.3: proseg 3.2.0 (the crate native/build.sh pins) with the patch that adds proseg's own count to
     live mode (3.2.0.1) and counts a pause on a frame a token counted again with f (3.2.0.2), so pip replaces an
-    installed 3.2.0. The patch adds the three options the engine passes, and --help lists them (the engine's capability
+    installed 3.2.0; 3.2.0.3 is the same program, its package the first on PyPI (no classifier forbids the upload). The patch adds the three options the engine passes, and --help lists them (the engine's capability
     check reads it)."""
     import tomllib
 
     package = tomllib.loads((ROOT / "native/package/pyproject.toml").read_text())["project"]
     crate = next(line.split("=", 1)[1] for line in (ROOT / "native/build.sh").read_text().splitlines()
                  if line.startswith("VERSION="))
-    assert package["version"] == "3.2.0.2" and package["version"].startswith(crate + ".")
+    assert package["version"] == "3.2.0.3" and package["version"].startswith(crate + ".")
     patch = (ROOT / "native/proseg-live.patch").read_text()
     main = patch.split("diff -ruN a/src/main.rs b/src/main.rs\n", 1)[1].split("\ndiff ", 1)[0]
     for field in ("live_counts: Option<String>,", "live_counts_dir: Option<String>,", "live_counts_start: Option<u64>,"):

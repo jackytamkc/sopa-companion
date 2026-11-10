@@ -32,12 +32,10 @@ checkout remains a release check. The upstream release is
 The extra needs a published `sopa-companion>=0.3` wheel on the selected package
 index (0.3 is the first without proseg-live inside it, which its own package
 brings, so the extra also replaces a 0.2 or 0.1 wheel installed before). It
-deliberately contains no private Git URL. Until both `sopa-companion` and
-`proseg-live` are on PyPI, install them from a release folder with `--no-index`
-(the companion's README, Install), never with `--find-links` beside an index:
-anyone could register either name there, and pip takes the highest version it
-finds. Publishing the companion, merging this patch and updating SoPA's lock
-file are separate release steps; this patch performs none of them.
+deliberately contains no Git URL: both `sopa-companion` and `proseg-live` are
+on PyPI from the companion's 0.7.0 on, so `pip install 'sopa[companion]'`
+resolves there. Merging this patch and updating SoPA's lock file are separate
+release steps; this patch performs neither.
 
 ## Companion dependencies and wheels
 

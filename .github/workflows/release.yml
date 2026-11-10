@@ -1,9 +1,12 @@
 # A tag v<version> (the companion's version) builds both packages (proseg-live for Linux, macOS on Apple silicon and
-# Windows x64), installs them on each of those systems exactly as the README tells a tester there (on Linux with a
-# squatter's index and find-links folders beside PyPI, which those lines must never use), runs the app's tests and the
-# notebook route end to end on each system (ci/launch_smoke.py), and publishes the release that alpha testers
-# download (README, Install). Started by hand it does the same and publishes nothing. Every action is pinned to the
-# commit of the release named beside it.
+# Windows x64), installs them on each of those systems from the very files it is about to publish, given to pip as
+# files (on Linux with a squatter's index and find-links folders beside PyPI, which that line must never use), runs the
+# app's tests and the notebook route end to end on each system (ci/launch_smoke.py), then publishes both packages on
+# PyPI (README, Install: pip install "sopa-companion[all]") and the release here with the same files. Started by hand
+# it does the same and publishes nothing. Every action is pinned to the commit of the release named beside it.
+# PyPI takes the files by trusted publishing: each upload job proves to PyPI which workflow of which repository it is
+# (a short-lived identity, id-token), so no PyPI password or token is kept anywhere. Each project has an environment
+# of its own, which is what PyPI knows its publisher by (pypi.org, the project's Publishing settings).
 # The token can write to the repository only in the job that publishes, after everything else has passed (and sign the
 # files' build provenance there): the others run code from PyPI (the build backends,
 # sopa's packages), and no checkout keeps the token for later steps.
@@ -66,9 +69,10 @@ jobs:
       - name: The squatter's wheels as find-links folders in the environment's own pip settings too
         if: runner.os == 'Linux'
         run: printf '[global]\nfind-links = %s/squat/sopa-companion %s/squat/proseg-live\n' "$PWD" "$PWD" > env/pip.conf
-      # The README's install lines, exactly, with pip; the release they download from is the one this run publishes, so
-      # its download is this run's own files, taken by the same two patterns into the same new folder.
-      - name: The README's install lines, exactly, with pip
+      # What PyPI will serve, installed before it is published: this run's own two files in a new folder, given to pip as
+      # files, so pip asks no index for either name (the README's line, pip install "sopa-companion[all]", then
+      # brings these same files from PyPI).
+      - name: The app and proseg-live from this run's files, with pip
         if: runner.os == 'Linux'
         env:
           PIP_EXTRA_INDEX_URL: "file://${{ github.workspace }}/squat"
@@ -78,14 +82,14 @@ jobs:
           cp sopa-companion-release/sopa_companion-*.whl sopa-companion-release/proseg_live-*_$(uname -m).whl "$d"
           env/bin/pip install "sopa-companion[all]" "$d"/sopa_companion-*.whl "$d"/proseg_live-*.whl
       # macOS takes Linux's lines as they are: uname -m names its wheel there (arm64).
-      - name: The README's install lines on macOS, exactly, with pip
+      - name: The same on macOS, with pip
         if: runner.os == 'macOS'
         run: |
           d=$(mktemp -d)
           cp sopa-companion-release/sopa_companion-*.whl sopa-companion-release/proseg_live-*_$(uname -m).whl "$d"
           env/bin/pip install "sopa-companion[all]" "$d"/sopa_companion-*.whl "$d"/proseg_live-*.whl
       # Windows' lines (PowerShell), in the environment made active as the README has it.
-      - name: The README's install lines on Windows, exactly, with pip
+      - name: The same on Windows, with pip
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
@@ -99,8 +103,34 @@ jobs:
         run: |
           uv pip install --python "$ENV_PY" jupyter_client ipykernel
           "$ENV_PY" ci/launch_smoke.py "$RUNNER_TEMP/launch-smoke"
-  publish:
+  # PyPI first, proseg-live before the app that needs it. A file PyPI already has is left as it is (proseg-live keeps
+  # its version across the app's releases; a run started again uploads only what is missing).
+  pypi-proseg-live:
     needs: [tests, install]
+    if: github.event_name == 'push' && github.ref_type == 'tag'
+    runs-on: ubuntu-24.04
+    environment: pypi-proseg-live
+    permissions: {id-token: write}
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with: {path: release, merge-multiple: true}
+      - run: mkdir upload && cp release/proseg_live-* upload/
+      - uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086      # v1.14.3
+        with: {packages-dir: upload, skip-existing: true}
+  pypi-companion:
+    needs: [pypi-proseg-live]
+    if: github.event_name == 'push' && github.ref_type == 'tag'
+    runs-on: ubuntu-24.04
+    environment: pypi-sopa-companion
+    permissions: {id-token: write}
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with: {path: release, merge-multiple: true}
+      - run: mkdir upload && cp release/sopa_companion-* upload/
+      - uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086      # v1.14.3
+        with: {packages-dir: upload, skip-existing: true}
+  publish:
+    needs: [tests, install, pypi-companion]
     if: github.event_name == 'push' && github.ref_type == 'tag'
     runs-on: ubuntu-24.04
     permissions: {contents: write, id-token: write, attestations: write}

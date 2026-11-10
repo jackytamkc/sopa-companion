@@ -21,10 +21,13 @@ README = (ROOT / "README.md").read_text()
 DEVELOPING = (ROOT / "docs/DEVELOPING.md").read_text()
 ARCHITECTURE = (ROOT / "docs/ARCHITECTURE.md").read_text()
 RELEASE_NOTES = (ROOT / "ci/release-notes.md").read_text()
-# The install lines (README, Install): a new folder, the latest release's two wheels into it (the app, and this
-# computer's proseg-live), then one pip line that installs both from those files and what they need from PyPI. pip
-# takes a name given as a file from that file alone, so neither name is ever asked of an index (nor of the user's own
-# pip settings, which may name indexes or find-links folders).
+# The README's install line, on every system: both packages are on PyPI, and the app's pin brings proseg-live.
+PYPI_INSTALL = 'pip install "sopa-companion[all]"'
+# The release job's lines (release.yml, install), before PyPI has the files it is about to publish: a new folder, the
+# run's own two wheels into it (the app, and this computer's proseg-live; a release's download by the same patterns),
+# then one pip line that installs both from those files and what they need from PyPI. pip takes a name given as a file
+# from that file alone, so neither name is asked of an index (nor of pip's own settings, which may name indexes or
+# find-links folders).
 INSTALL = ("d=$(mktemp -d)",
            "gh release download --repo jackytamkc/sopa-companion --dir \"$d\" --pattern 'sopa_companion-*.whl' "
            "--pattern \"proseg_live-*_$(uname -m).whl\"",
@@ -178,22 +181,18 @@ def test_the_readme_says_nothing_of_the_dormant_instanseg():
     assert "instanseg" not in README.lower()
 
 
-def test_the_readme_installs_from_the_release_alone():
-    """The README's Install gives the three lines exactly, one after another (and the source build, its two lines in
-    order, for a computer no proseg-live wheel fits); the release's own text gives the same lines for its tag."""
+def test_the_readme_installs_from_pypi_with_one_line():
+    """The README's Install gives one line on each system (macOS, Windows, Linux), the same: the app with its extras
+    from PyPI, which brings proseg-live; updating is that line with --upgrade. Nothing asks for the GitHub CLI any
+    more. The release's own text gives the same line."""
     install = section(README, "## Install")
     lines = [line.strip() for line in install.splitlines()]
-    assert all(line in lines for line in (*INSTALL, *WINDOWS_INSTALL, *SOURCE_BUILD)), install
-    for given in (INSTALL, WINDOWS_INSTALL):
-        assert lines.index(given[1]) == lines.index(given[0]) + 1 and lines.index(given[2]) == lines.index(given[1]) + 1
-    assert lines.index(SOURCE_BUILD[1]) == lines.index(SOURCE_BUILD[0]) + 1
+    assert lines.count(PYPI_INSTALL) == 3
+    assert '`pip install --upgrade "sopa-companion[all]"`' in install
+    assert "gh release download" not in README and "gh auth login" not in README and "GitHub CLI" not in README
     assert "](https://prism-oncology.github.io/sopa/getting_started/)" in section(README, "## Requirements")
     notes = [line.strip() for line in RELEASE_NOTES.splitlines()]
-    tag = (lambda line: line.replace("gh release download ", "gh release download {tag} "))
-    for given in (INSTALL, WINDOWS_INSTALL):
-        assert notes.index(tag(given[1])) == notes.index(given[0]) + 1
-        assert notes.index(given[2]) == notes.index(tag(given[1])) + 1
-    assert notes.index(SOURCE_BUILD[1]) == notes.index(tag(SOURCE_BUILD[0])) + 1 and "{version}" in RELEASE_NOTES
+    assert PYPI_INSTALL in notes and "gh release download" not in RELEASE_NOTES and "{version}" in RELEASE_NOTES
 
 
 def pip_installs(text: str) -> list[str]:
@@ -236,23 +235,12 @@ def asked_of_an_index(command: str) -> list[str]:
     return asked
 
 
-def test_no_text_sends_anyone_to_an_index_for_the_two_packages():
-    """During the alpha neither package is on any index, so anyone could register their names there: no text the app,
-    its docs or its release give tells anyone to pip install sopa-companion, proseg-live or sopa[companion] in a way that
-    asks an index (a local wheel of the app alone asks one for proseg-live). The release's two files given to pip as
-    files (the app's wheel with proseg-live's wheel or source distribution) are the way. packaging/sopa-fork/ is sopa's
-    extra for the day the app is published; tests and the harness are not read by users."""
-    texts = [ROOT / name for name in ("README.md", "config.example.toml", "docs/ARCHITECTURE.md", "docs/DEVELOPING.md",
-                                      "native/README.md", "native/package/PROSEG-LIVE.md", "ci/release-notes.md")]
-    texts += sorted((ROOT / "frontend/src").glob("*"))
-    skipped = {"tests", "harness", "packaging", "var", "node_modules"}
-    texts += sorted(path for path in ROOT.rglob("*.py") if not any(part.startswith(".") or part in skipped
-                                                                    for part in path.relative_to(ROOT).parts)
-                    and path.relative_to(ROOT).parts[:2] not in (("native", "proseg"),))
-    found = {f"{path.relative_to(ROOT)}: {command}" for path in texts if path.is_file()
-             for command in pip_installs(path.read_text(errors="replace")) if asked_of_an_index(command)}
-    assert found == set()
-    # The check itself finds what it is for.
+def test_the_release_job_s_lines_ask_no_index_for_the_two_packages():
+    """Both packages are on PyPI under the project's own names, so the README's line asks PyPI for them. The release
+    job installs the files it is about to publish before PyPI has them: its lines give both to pip as files (the app's
+    wheel with proseg-live's wheel or source distribution), which asks no index for either name, whatever an index or a
+    find-links folder beside PyPI holds (a local wheel of the app alone would ask one for proseg-live)."""
+    assert asked_of_an_index(pip_installs(PYPI_INSTALL)[0]) == ['"sopa-companion[all]"'.strip('"')]
     for asking in ("pip install sopa-companion", "pip install --upgrade 'sopa[companion]'", "pip install proseg-live==3.2.0",
                    "pip install sopa_companion-0.2.0-py3-none-linux_x86_64.whl",
                    "pip install --find-links sopa-companion-release sopa-companion proseg-live",

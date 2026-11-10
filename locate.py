@@ -50,7 +50,7 @@ PROBE = ("import importlib.util as u, sys\n"
 WHERE = {"source": "this source folder's build", "environment": "this Python environment",
          "user": "your user scripts folder", "path": "found on PATH", "setting": "set in the settings"}
 # What makes a missing program, in the same words everywhere (the engine's log, the Log, --version, a notebook's
-# error): never an index command (the two packages come from the release folder alone, README Install).
+# error): the README's Install section has the line for each computer.
 FIX_WORDS = {"build": "native/build.sh builds it", "install": "install it as the README's Install section says",
              "setting": "{path} is not there"}
 # What makes a newer program in place of one found (an older proseg-live, which cannot keep proseg's own count): a

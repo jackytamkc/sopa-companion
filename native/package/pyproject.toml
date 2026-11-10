@@ -6,16 +6,17 @@ build-backend = "maturin"
 
 [project]
 name = "proseg-live"
-version = "3.2.0.2"                    # proseg's version; a fourth number for a new patch on the same proseg
+version = "3.2.0.3"                    # proseg's version; a fourth number for a new patch on the same proseg
 description = "proseg 3.2.0 with live mode (per-iteration snapshots, pause, step, its own counts) for the SoPA companion"
 readme = "PROSEG-LIVE.md"
 license = { file = "LICENSE.md" }
 requires-python = ">=3.9"
 classifiers = ["License :: OSI Approved :: GNU General Public License v3 (GPLv3)", "Programming Language :: Rust",
-               "Operating System :: POSIX :: Linux", "Private :: Do Not Upload"]
+               "Operating System :: POSIX :: Linux", "Operating System :: MacOS", "Operating System :: Microsoft :: Windows"]
 
 [project.urls]
 "proseg" = "https://github.com/dcjones/proseg"
+"SoPA companion" = "https://github.com/jackytamkc/sopa-companion"
 
 [tool.maturin]
 bindings = "bin"

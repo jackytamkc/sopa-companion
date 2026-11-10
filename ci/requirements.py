@@ -4,7 +4,7 @@ proseg-live, plus the extras named on the command line.
     python ci/requirements.py              the release's dependencies.txt, headed by a comment that says what it is
     python ci/requirements.py test [...]   the same list and these extras' (CI's test environment)
 
-proseg-live comes from the release folder, never from an index (README, Install): no line names it, nor the app itself.
+proseg-live is the release's own package, as the app is: no line names it, nor the app itself.
 An extra that names the app (all = sopa-companion[sopa,stain,qc]) stands for those extras' own lists, so pip is never
 asked to look for sopa-companion either. Standard library only.
 """
@@ -18,7 +18,7 @@ import tomllib
 ROOT = Path(__file__).resolve().parents[1]
 FROM_THE_RELEASE = ("sopa-companion", "proseg-live")
 HEADER = ("# SoPA companion {version}: the packages it needs from PyPI (pip install -r this file). The app and "
-          "proseg-live come from this release folder (README, Install).")
+          "proseg-live are on PyPI too, and in this release's files.")
 
 
 def name(requirement: str) -> str:

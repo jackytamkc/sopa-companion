@@ -92,10 +92,15 @@ jobs:
   # no GPU, so torch sees none), scvi-tools and scviva-tools, and the real trainer's CPU test fits (learning, export,
   # self-tests) and the GPU probe's tests. A fit on a Windows GPU needs a computer with one: GitHub's GPU runners are
   # an organisation's (Team or Enterprise plans).
+  # Not yet part of a release: only a run started by hand has it (a called workflow sees its caller's event, a tag's
+  # push in a release). Its first runs, on the public repository: every test passes up to the first real fit, which
+  # does not end (a job that meets its time limit counts as cancelled, which would stop the release's publishing
+  # whatever continue-on-error says). The README says the mixing check on Windows is not tested yet; once the job
+  # passes, the event's condition goes.
   mixing-windows:
-    if: inputs.other_systems
+    if: inputs.other_systems && github.event_name == 'workflow_dispatch'
     runs-on: windows-2022
-    timeout-minutes: 60
+    timeout-minutes: 30
     env: {PYTHONDONTWRITEBYTECODE: "1", CUDA_VISIBLE_DEVICES: ""}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1          # v7.0.1

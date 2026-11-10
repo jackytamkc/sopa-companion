@@ -151,6 +151,11 @@ come from), runs the notebook route end to end on each (`ci/launch_smoke.py`: a 
 close, a killed kernel), runs the app's tests (with `tests/test_portable.py` on macOS and Windows too), and publishes
 the release with `ci/release-notes.md` as its text. Started by hand (`gh workflow run release.yml --ref <branch>`) it
 does the same and publishes nothing: the way to try a change on macOS and Windows. A push's own checks stay on Linux.
+Before the release here, the same run publishes both packages on PyPI (`pypi-proseg-live`, then `pypi-companion`) by
+trusted publishing: PyPI knows each project's publisher as this repository's `release.yml` in the environment
+`pypi-proseg-live` or `pypi-sopa-companion` (pypi.org, the project's Publishing settings), so no PyPI token exists
+anywhere. A file PyPI already has is left alone: proseg-live keeps its version until `native/` changes (then
+`native/package/pyproject.toml` takes a new fourth number).
 Every file of a release made this way also gets a build-provenance attestation (the workflow run and the commit that
 built it, signed), which anyone can check: `gh attestation verify FILE --repo jackytamkc/sopa-companion`. GitHub
 makes them for public repositories only (a private one needs GitHub Enterprise Cloud), so a private copy skips the

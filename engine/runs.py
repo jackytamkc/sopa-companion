@@ -110,8 +110,7 @@ IMAGE_ONLY = "This sample has no transcripts: only stain segmentation runs here"
 # A stain run with no cell left to save: it found none, or every one was removed.
 NO_CELLS = "There are no cells to save: this run found none, or all were removed"
 ONE_RUN = "Another run is open: save it to the sample or discard it first."
-# A run's start without its proseg-live, by what makes the program (locate.py's fix): never an index command, the two
-# packages come from the release folder alone (README, Install).
+# A run's start without its proseg-live, by what makes the program (locate.py's fix), in the README's own words.
 MISSING_PROSEG = {"build": "proseg-live is not built yet: run native/build.sh",
                   "install": "proseg-live is not installed: install it as the README's Install section says",
                   "setting": "proseg-live is not where [proseg] binary says"}

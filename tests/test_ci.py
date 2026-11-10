@@ -37,7 +37,7 @@ def test_dependencies_txt_is_the_apps_list_without_the_release_packages():
     extra that names the app stands for its own extras' lists."""
     lines = requirements_txt()
     assert lines[0] == (f"# SoPA companion {__version__}: the packages it needs from PyPI (pip install -r this file). "
-                        "The app and proseg-live come from this release folder (README, Install).")
+                        "The app and proseg-live are on PyPI too, and in this release's files.")
     assert lines[1:] == [text for text in PROJECT["dependencies"] if not text.startswith("proseg-live")]
     extras = PROJECT["optional-dependencies"]
     assert requirements_txt("test") == lines[1:] + extras["test"]
@@ -283,7 +283,9 @@ def test_only_the_job_that_publishes_can_write_and_only_after_the_tests():
     """Every workflow's token reads the repository only; the release's publish job alone may write (it creates the
     release), and only after the app's tests (tests.yml, called by release.yml), the builds and the testers' install have
     passed: the other jobs run code from PyPI (build backends, sopa's packages). No checkout keeps the token for the
-    steps after it."""
+    steps after it. PyPI takes both packages by trusted publishing, after the same checks and before the release here:
+    two jobs that can prove who they are (id-token) and nothing else, each in the environment PyPI knows its project's
+    publisher by, proseg-live before the app that needs it; no PyPI token is kept in the repository."""
     for path in sorted(WORKFLOWS.glob("*.yml")):
         text = path.read_text()
         assert re.search(r"^permissions: \{contents: read\}$", text, re.M), path.name
@@ -300,11 +302,22 @@ def test_only_the_job_that_publishes_can_write_and_only_after_the_tests():
                      release["publish"])
     for path in sorted(WORKFLOWS.glob("*.yml")):
         signers = [name for name, block in jobs(path.read_text()).items() if "id-token: write" in block]
-        assert signers == (["publish"] if path.name == "release.yml" else []), path.name
+        assert signers == (["pypi-proseg-live", "pypi-companion", "publish"] if path.name == "release.yml" else []), path.name
+    for name, needs, files in (("pypi-proseg-live", "[tests, install]", "proseg_live-*"),
+                               ("pypi-companion", "[pypi-proseg-live]", "sopa_companion-*")):
+        job = release[name]
+        environment = "pypi-sopa-companion" if name == "pypi-companion" else name
+        assert re.search(rf"^    needs: {re.escape(needs)}$", job, re.M) and f"\n    environment: {environment}\n" in job
+        assert "if: github.event_name == 'push' && github.ref_type == 'tag'" in job
+        assert "permissions: {id-token: write}" in job and "actions/checkout@" not in job
+        assert f"run: mkdir upload && cp release/{files} upload/" in job
+        assert re.search(r"uses: pypa/gh-action-pypi-publish@[0-9a-f]{40}\s+# v[\d.]+\n\s+with: \{packages-dir: upload, skip-existing: true\}", job)
+    text = (WORKFLOWS / "release.yml").read_text()
+    assert "PYPI_API_TOKEN" not in text and "password:" not in text and "secrets." not in text
     # The release asks both for macOS and Windows too: their tests (tests.yml systems) and proseg-live's wheels.
     assert release["tests"].strip() == "uses: ./.github/workflows/tests.yml\n    with: {other_systems: true}"
     assert release["proseg-live"].strip() == "uses: ./.github/workflows/proseg-live.yml\n    with: {other_systems: true}"
-    assert re.search(r"^    needs: \[tests, install\]$", release["publish"], re.M)
+    assert re.search(r"^    needs: \[tests, install, pypi-companion\]$", release["publish"], re.M)
     assert "if: github.event_name == 'push' && github.ref_type == 'tag'" in release["publish"]
     tests = (WORKFLOWS / "tests.yml").read_text()
     assert re.search(r"^  workflow_call:\n    inputs:\n      other_systems: \{type: boolean, default: false\}$", tests, re.M)
@@ -312,12 +325,11 @@ def test_only_the_job_that_publishes_can_write_and_only_after_the_tests():
     assert 'group: "tests-${{ github.workflow }}-${{ github.ref }}"' in tests
 
 
-def test_the_release_job_installs_with_the_readmes_lines_beside_a_squatters_index_and_find_links():
-    """The release job runs the README's install lines exactly, with a squatter's index beside PyPI and its wheels as
-    find-links folders, in the environment variables and the environment's own pip settings: the pip line must leave
-    them all out (its versions are checked after, by install_smoke.sh). The release they download from is the one the
-    job publishes, so the download's stand-in is the run's own files, taken by the README's two patterns into the same
-    new folder."""
+def test_the_release_job_installs_its_own_files_beside_a_squatters_index_and_find_links():
+    """Before it publishes, the release job installs the files PyPI will serve: the run's own two wheels in a new folder,
+    given to pip as files, with a squatter's index beside PyPI and its wheels as find-links folders, in the environment
+    variables and the environment's own pip settings: the pip line must leave them all out (its versions are checked
+    after, by install_smoke.sh)."""
     from test_config_docs import INSTALL
     install = jobs((WORKFLOWS / "release.yml").read_text())["install"]
     lines = [line.strip() for line in install.splitlines()]
@@ -333,9 +345,9 @@ def test_the_release_job_installs_with_the_readmes_lines_beside_a_squatters_inde
 
 
 def test_the_release_installs_and_runs_the_notebook_route_on_linux_macos_and_windows():
-    """The install job runs on Linux, macOS (Apple silicon) and Windows (x64), each with the README's lines for it:
+    """The install job runs on Linux, macOS (Apple silicon) and Windows (x64), each with the release job's lines for it:
     Linux's and macOS's are the same three (uname -m names the wheel), Windows' the PowerShell three in the environment
-    made active, with the run's own wheels in place of the download. Each then runs the notebook route end to end
+    made active, with the run's own wheels in the new folder. Each then runs the notebook route end to end
     (ci/launch_smoke.py: a kernel, proseg, Cellpose, saves, close, a killed kernel); the desktop's install_smoke.sh stays
     Linux's. The release publishes every system's wheels."""
     from test_config_docs import INSTALL, WINDOWS_INSTALL

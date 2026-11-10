@@ -27,7 +27,7 @@ import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
 PACKAGE = "sopa_companion"
-# What the release's lines take from the release folder, never from an index (README, Install).
+# The release's own two packages: dependencies.txt names neither (what they need besides each other).
 FROM_THE_RELEASE = ("sopa-companion", "proseg-live")
 # Besides proseg-live's pin, every wheel requires sopa itself and platformdirs (the per-user folders off Linux).
 REQUIRED = ("sopa>=2.2.10", "platformdirs>=4")

@@ -17,7 +17,7 @@ The app runs it as a separate program.
 - **Source.** proseg 3.2.0 as crates.io publishes it (<https://crates.io/crates/proseg/3.2.0>), plus
   `proseg-live.patch`, which holds every change to it (its `Cargo.lock`'s too: the build uses exactly those
   dependency versions).
-- **For users** it is a package of its own, `proseg-live` (`package/`, version 3.2.0.2: proseg's version with a fourth
+- **For users** it is a package of its own, `proseg-live` (`package/`, version 3.2.0.3: proseg's version with a fourth
   number for the patch), installed with the app. Its source distribution is the patched crate with the patch beside it;
   every release carries it next to the wheels. Its `--version` says `proseg 3.2.0`; the app knows one that keeps
   proseg's own count by its `--help` listing `--live-counts`.
