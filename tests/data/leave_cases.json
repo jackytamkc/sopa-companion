@@ -1,0 +1,999 @@
+[
+  {
+    "name": "preparing",
+    "run": {
+      "kind": "proseg",
+      "sample_kind": "zarr",
+      "state": "preparing"
+    },
+    "expect": {
+      "kind": "none",
+      "can_add": false,
+      "why": "not_started"
+    },
+    "decided": false
+  },
+  {
+    "name": "loading",
+    "run": {
+      "kind": "proseg",
+      "sample_kind": "zarr",
+      "state": "running",
+      "phase": "loading",
+      "frames": 0
+    },
+    "expect": {
+      "kind": "none",
+      "can_add": false,
+      "why": "not_started"
+    },
+    "decided": false
+  },
+  {
+    "name": "paused prior",
+    "run": {
+      "kind": "proseg",
+      "sample_kind": "zarr",
+      "state": "paused",
+      "paused": true,
+      "frames": 1,
+      "ack": {
+        "iter": 0
+      }
+    },
+    "expect": {
+      "kind": "none",
+      "can_add": false,
+      "why": "not_started"
+    },
+    "decided": false
+  },
+  {
+    "name": "step asked",
+    "run": {
+      "kind": "proseg",
+      "sample_kind": "zarr",
+      "state": "paused",
+      "frames": 1,
+      "steps": 1,
+      "ack": {
+        "iter": 0
+      }
+    },
+    "expect": {
+      "kind": "ask",
+      "can_add": true,
+      "why": "unsaved"
+    },
+    "decided": false
+  },
+  {
+    "name": "sampling",
+    "run": {
+      "kind": "proseg",
+      "sample_kind": "zarr",
+      "state": "running",
+      "frames": 3
+    },
+    "expect": {
+      "kind": "ask",
+      "can_add": true,
+      "why": "unsaved"
+    },
+    "decided": false
+  },
+  {
+    "name": "paused after sampling",
+    "run": {
+      "kind": "proseg",
+      "sample_kind": "zarr",
+      "state": "paused",
+      "frames": 10,
+      "ack": {
+        "iter": 8
+      }
+    },
+    "expect": {
+      "kind": "ask",
+      "can_add": true,
+      "why": "unsaved"
+    },
+    "decided": false
+  },
+  {
+    "name": "held at schedule end",
+    "run": {
+      "kind": "proseg",
+      "sample_kind": "zarr",
+      "state": "paused",
+      "schedule_done": {
+        "iter": 1200
+      },
+      "frames": 1201
+    },
+    "expect": {
+      "kind": "ask",
+      "can_add": true,
+      "why": "unsaved"
+    },
+    "decided": false
+  },
+  {
+    "name": "finishing",
+    "run": {
+      "kind": "proseg",
+      "sample_kind": "zarr",
+      "state": "finishing",
+      "finish_requested": true,
+      "frames": 4
+    },
+    "expect": {
+      "kind": "ask",
+      "can_add": true,
+      "why": "unsaved"
+    },
+    "decided": true
+  },
+  {
+    "name": "finished unsaved",
+    "run": {
+      "kind": "proseg",
+      "sample_kind": "zarr",
+      "state": "done"
+    },
+    "expect": {
+      "kind": "ask",
+      "can_add": true,
+      "why": "unsaved"
+    },
+    "decided": false
+  },
+  {
+    "name": "finished save failed",
+    "run": {
+      "kind": "proseg",
+      "sample_kind": "zarr",
+      "state": "done",
+      "zarr_save": {
+        "state": "failed"
+      }
+    },
+    "expect": {
+      "kind": "ask",
+      "can_add": true,
+      "why": "unsaved"
+    },
+    "decided": false
+  },
+  {
+    "name": "saved",
+    "run": {
+      "kind": "proseg",
+      "sample_kind": "zarr",
+      "state": "done",
+      "zarr_save": {
+        "state": "saved"
+      }
+    },
+    "expect": {
+      "kind": "saved",
+      "can_add": false,
+      "why": "saved"
+    },
+    "decided": false
+  },
+  {
+    "name": "stopped",
+    "run": {
+      "kind": "proseg",
+      "sample_kind": "zarr",
+      "state": "stopped"
+    },
+    "expect": {
+      "kind": "none",
+      "can_add": false,
+      "why": "ended"
+    },
+    "decided": false
+  },
+  {
+    "name": "failed",
+    "run": {
+      "kind": "proseg",
+      "sample_kind": "zarr",
+      "state": "failed"
+    },
+    "expect": {
+      "kind": "none",
+      "can_add": false,
+      "why": "ended"
+    },
+    "decided": false
+  },
+  {
+    "name": "save in flight",
+    "run": {
+      "kind": "proseg",
+      "sample_kind": "zarr",
+      "state": "done",
+      "zarr_save": {
+        "state": "saving"
+      }
+    },
+    "expect": {
+      "kind": "saving",
+      "can_add": false,
+      "why": "saving"
+    },
+    "decided": false
+  },
+  {
+    "name": "memory waiting",
+    "run": {
+      "kind": "proseg",
+      "sample_kind": "zarr",
+      "state": "done",
+      "zarr_save": {
+        "state": "queued",
+        "written_to": null
+      }
+    },
+    "expect": {
+      "kind": "saving",
+      "can_add": false,
+      "why": "saving"
+    },
+    "decided": false
+  },
+  {
+    "name": "disk queued",
+    "run": {
+      "kind": "proseg",
+      "sample_kind": "zarr",
+      "state": "done",
+      "zarr_save": {
+        "state": "queued",
+        "written_to": "sample.zarr"
+      }
+    },
+    "expect": {
+      "kind": "saved",
+      "can_add": false,
+      "why": "saved"
+    },
+    "decided": false
+  },
+  {
+    "name": "test square",
+    "run": {
+      "kind": "proseg",
+      "sample_kind": "zarr",
+      "state": "running",
+      "qc_test": {
+        "of": "parent",
+        "role": "control",
+        "test": "t"
+      }
+    },
+    "expect": {
+      "kind": "none",
+      "can_add": false,
+      "why": "test"
+    },
+    "decided": false
+  },
+  {
+    "name": "parent testing",
+    "run": {
+      "kind": "proseg",
+      "sample_kind": "zarr",
+      "state": "paused",
+      "frames": 12,
+      "qc_test": {
+        "state": "running",
+        "progress": {}
+      }
+    },
+    "expect": {
+      "kind": "ask",
+      "can_add": true,
+      "why": "unsaved"
+    },
+    "decided": false
+  },
+  {
+    "name": "legacy bundle",
+    "run": {
+      "kind": "proseg",
+      "sample_kind": "xenium",
+      "state": "done"
+    },
+    "expect": {
+      "kind": "ask",
+      "can_add": false,
+      "why": "sample"
+    },
+    "decided": false
+  },
+  {
+    "name": "stain not started",
+    "run": {
+      "kind": "stain",
+      "sample_kind": "zarr",
+      "state": "paused",
+      "stain_started": false,
+      "progress": {
+        "done": 3,
+        "total": 6,
+        "revision": 4,
+        "resolved": true
+      },
+      "summary_model": {
+        "cells": 20
+      },
+      "summary": {
+        "cells": 15
+      },
+      "exclusions": {
+        "version": 3,
+        "digest": "abc"
+      }
+    },
+    "expect": {
+      "kind": "none",
+      "can_add": false,
+      "why": "not_started"
+    },
+    "decided": false
+  },
+  {
+    "name": "stain no tiles",
+    "run": {
+      "kind": "stain",
+      "sample_kind": "zarr",
+      "state": "running",
+      "stain_started": true,
+      "progress": {
+        "done": 0
+      },
+      "summary_model": {
+        "cells": 20
+      },
+      "summary": {
+        "cells": 15
+      },
+      "exclusions": {
+        "version": 3,
+        "digest": "abc"
+      }
+    },
+    "expect": {
+      "kind": "none",
+      "can_add": false,
+      "why": "not_started"
+    },
+    "decided": false
+  },
+  {
+    "name": "model no cells",
+    "run": {
+      "kind": "stain",
+      "sample_kind": "zarr",
+      "state": "stopped",
+      "stain_started": true,
+      "progress": {
+        "done": 3,
+        "total": 6,
+        "revision": 4,
+        "resolved": true
+      },
+      "summary_model": {
+        "cells": 0
+      },
+      "summary": {
+        "cells": 0
+      },
+      "exclusions": {
+        "version": 3,
+        "digest": "abc"
+      }
+    },
+    "expect": {
+      "kind": "none",
+      "can_add": false,
+      "why": "no_cells"
+    },
+    "decided": false
+  },
+  {
+    "name": "filters hide all",
+    "run": {
+      "kind": "stain",
+      "sample_kind": "zarr",
+      "state": "stopped",
+      "stain_started": true,
+      "progress": {
+        "done": 3,
+        "total": 6,
+        "revision": 4,
+        "resolved": true
+      },
+      "summary_model": {
+        "cells": 20
+      },
+      "summary": {
+        "cells": 0
+      },
+      "exclusions": {
+        "version": 3,
+        "digest": "abc"
+      }
+    },
+    "expect": {
+      "kind": "ask",
+      "can_add": false,
+      "why": "filtered"
+    },
+    "decided": false
+  },
+  {
+    "name": "stain sampling",
+    "run": {
+      "kind": "stain",
+      "sample_kind": "zarr",
+      "state": "running",
+      "stain_started": true,
+      "progress": {
+        "done": 3,
+        "total": 6,
+        "revision": 4,
+        "resolved": true
+      },
+      "summary_model": {
+        "cells": 20
+      },
+      "summary": {
+        "cells": 15
+      },
+      "exclusions": {
+        "version": 3,
+        "digest": "abc"
+      }
+    },
+    "expect": {
+      "kind": "ask",
+      "can_add": true,
+      "why": "unsaved"
+    },
+    "decided": false
+  },
+  {
+    "name": "stain paused",
+    "run": {
+      "kind": "stain",
+      "sample_kind": "zarr",
+      "state": "paused",
+      "stain_started": true,
+      "progress": {
+        "done": 3,
+        "total": 6,
+        "revision": 4,
+        "resolved": true
+      },
+      "summary_model": {
+        "cells": 20
+      },
+      "summary": {
+        "cells": 15
+      },
+      "exclusions": {
+        "version": 3,
+        "digest": "abc"
+      }
+    },
+    "expect": {
+      "kind": "ask",
+      "can_add": true,
+      "why": "unsaved"
+    },
+    "decided": false
+  },
+  {
+    "name": "stain finishing",
+    "run": {
+      "kind": "stain",
+      "sample_kind": "zarr",
+      "state": "finishing",
+      "stain_started": true,
+      "progress": {
+        "done": 3,
+        "total": 6,
+        "revision": 4,
+        "resolved": true
+      },
+      "summary_model": {
+        "cells": 20
+      },
+      "summary": {
+        "cells": 15
+      },
+      "exclusions": {
+        "version": 3,
+        "digest": "abc"
+      }
+    },
+    "expect": {
+      "kind": "ask",
+      "can_add": true,
+      "why": "unsaved"
+    },
+    "decided": false
+  },
+  {
+    "name": "stain not joined",
+    "run": {
+      "kind": "stain",
+      "sample_kind": "zarr",
+      "state": "stopped",
+      "stain_started": true,
+      "progress": {
+        "done": 3,
+        "total": 6,
+        "revision": 3,
+        "resolved": false
+      },
+      "summary_model": {
+        "cells": 20
+      },
+      "summary": {
+        "cells": 15
+      },
+      "exclusions": {
+        "version": 3,
+        "digest": "abc"
+      }
+    },
+    "expect": {
+      "kind": "ask",
+      "can_add": true,
+      "why": "unsaved"
+    },
+    "decided": false
+  },
+  {
+    "name": "stain failed unjoined",
+    "run": {
+      "kind": "stain",
+      "sample_kind": "zarr",
+      "state": "failed",
+      "stain_started": true,
+      "progress": {
+        "done": 3,
+        "total": 6,
+        "revision": 3,
+        "resolved": false
+      },
+      "summary_model": {
+        "cells": 20
+      },
+      "summary": {
+        "cells": 15
+      },
+      "exclusions": {
+        "version": 3,
+        "digest": "abc"
+      }
+    },
+    "expect": {
+      "kind": "ask",
+      "can_add": true,
+      "why": "unsaved"
+    },
+    "decided": false
+  },
+  {
+    "name": "stain joined",
+    "run": {
+      "kind": "stain",
+      "sample_kind": "zarr",
+      "state": "stopped",
+      "stain_started": true,
+      "progress": {
+        "done": 3,
+        "total": 6,
+        "revision": 4,
+        "resolved": true
+      },
+      "summary_model": {
+        "cells": 20
+      },
+      "summary": {
+        "cells": 15
+      },
+      "exclusions": {
+        "version": 3,
+        "digest": "abc"
+      }
+    },
+    "expect": {
+      "kind": "ask",
+      "can_add": true,
+      "why": "unsaved"
+    },
+    "decided": false
+  },
+  {
+    "name": "stain saved current",
+    "run": {
+      "kind": "stain",
+      "sample_kind": "zarr",
+      "state": "stopped",
+      "stain_started": true,
+      "progress": {
+        "done": 3,
+        "total": 6,
+        "revision": 4,
+        "resolved": true
+      },
+      "summary_model": {
+        "cells": 20
+      },
+      "summary": {
+        "cells": 15
+      },
+      "exclusions": {
+        "version": 3,
+        "digest": "abc"
+      },
+      "zarr_save": {
+        "state": "saved",
+        "result_revision": 4,
+        "exclusions_digest": "abc"
+      }
+    },
+    "expect": {
+      "kind": "saved",
+      "can_add": false,
+      "why": "saved"
+    },
+    "decided": false
+  },
+  {
+    "name": "stain changed filters",
+    "run": {
+      "kind": "stain",
+      "sample_kind": "zarr",
+      "state": "stopped",
+      "stain_started": true,
+      "progress": {
+        "done": 3,
+        "total": 6,
+        "revision": 4,
+        "resolved": true
+      },
+      "summary_model": {
+        "cells": 20
+      },
+      "summary": {
+        "cells": 15
+      },
+      "exclusions": {
+        "version": 3,
+        "digest": "abc"
+      },
+      "zarr_save": {
+        "state": "saved",
+        "result_revision": 4,
+        "exclusions_digest": "other"
+      }
+    },
+    "expect": {
+      "kind": "ask",
+      "can_add": true,
+      "why": "changed"
+    },
+    "decided": false
+  },
+  {
+    "name": "stain resumed",
+    "run": {
+      "kind": "stain",
+      "sample_kind": "zarr",
+      "state": "stopped",
+      "stain_started": true,
+      "progress": {
+        "done": 3,
+        "total": 6,
+        "revision": 4,
+        "resolved": true
+      },
+      "summary_model": {
+        "cells": 20
+      },
+      "summary": {
+        "cells": 15
+      },
+      "exclusions": {
+        "version": 3,
+        "digest": "abc"
+      },
+      "zarr_save": {
+        "state": "outdated",
+        "result_revision": 3,
+        "exclusions_digest": "abc"
+      }
+    },
+    "expect": {
+      "kind": "ask",
+      "can_add": true,
+      "why": "changed"
+    },
+    "decided": false
+  },
+  {
+    "name": "stain new result",
+    "run": {
+      "kind": "stain",
+      "sample_kind": "zarr",
+      "state": "stopped",
+      "stain_started": true,
+      "progress": {
+        "done": 3,
+        "total": 6,
+        "revision": 4,
+        "resolved": true
+      },
+      "summary_model": {
+        "cells": 20
+      },
+      "summary": {
+        "cells": 15
+      },
+      "exclusions": {
+        "version": 3,
+        "digest": "abc"
+      },
+      "zarr_save": {
+        "state": "saved",
+        "result_revision": 2,
+        "exclusions_digest": "abc"
+      }
+    },
+    "expect": {
+      "kind": "ask",
+      "can_add": true,
+      "why": "changed"
+    },
+    "decided": false
+  },
+  {
+    "name": "undo restores filters",
+    "run": {
+      "kind": "stain",
+      "sample_kind": "zarr",
+      "state": "stopped",
+      "stain_started": true,
+      "progress": {
+        "done": 3,
+        "total": 6,
+        "revision": 4,
+        "resolved": true
+      },
+      "summary_model": {
+        "cells": 20
+      },
+      "summary": {
+        "cells": 15
+      },
+      "exclusions": {
+        "version": 8,
+        "digest": "abc"
+      },
+      "zarr_save": {
+        "state": "saved",
+        "result_revision": 4,
+        "exclusions_version": 1,
+        "exclusions_digest": "abc"
+      }
+    },
+    "expect": {
+      "kind": "saved",
+      "can_add": false,
+      "why": "saved"
+    },
+    "decided": false
+  },
+  {
+    "name": "old filter version",
+    "run": {
+      "kind": "stain",
+      "sample_kind": "zarr",
+      "state": "stopped",
+      "stain_started": true,
+      "progress": {
+        "done": 3,
+        "total": 6,
+        "revision": 4,
+        "resolved": true
+      },
+      "summary_model": {
+        "cells": 20
+      },
+      "summary": {
+        "cells": 15
+      },
+      "exclusions": {
+        "version": 3,
+        "digest": "abc"
+      },
+      "zarr_save": {
+        "state": "saved",
+        "result_revision": 4,
+        "exclusions_version": 3
+      }
+    },
+    "expect": {
+      "kind": "saved",
+      "can_add": false,
+      "why": "saved"
+    },
+    "decided": false
+  },
+  {
+    "name": "stain saving empty now",
+    "run": {
+      "kind": "stain",
+      "sample_kind": "zarr",
+      "state": "stopped",
+      "stain_started": true,
+      "progress": {
+        "done": 3,
+        "total": 6,
+        "revision": 4,
+        "resolved": true
+      },
+      "summary_model": {
+        "cells": 20
+      },
+      "summary": {
+        "cells": 0
+      },
+      "exclusions": {
+        "version": 3,
+        "digest": "abc"
+      },
+      "zarr_save": {
+        "state": "saving"
+      }
+    },
+    "expect": {
+      "kind": "saving",
+      "can_add": false,
+      "why": "saving"
+    },
+    "decided": false
+  },
+  {
+    "name": "stain old summary empty",
+    "run": {
+      "kind": "stain",
+      "sample_kind": "zarr",
+      "state": "stopped",
+      "stain_started": true,
+      "progress": {
+        "done": 3,
+        "total": 6,
+        "revision": 4,
+        "resolved": true
+      },
+      "summary_model": null,
+      "summary": {
+        "cells": 0
+      },
+      "exclusions": {
+        "version": 3,
+        "digest": "abc"
+      }
+    },
+    "expect": {
+      "kind": "none",
+      "can_add": false,
+      "why": "no_cells"
+    },
+    "decided": false
+  },
+  {
+    "name": "patch draft",
+    "run": {
+      "kind": "patches",
+      "state": "done",
+      "patch_count": 3
+    },
+    "expect": {
+      "kind": "none",
+      "can_add": false,
+      "why": "patches"
+    },
+    "decided": false
+  },
+  {
+    "name": "finish and save done",
+    "run": {
+      "kind": "proseg",
+      "sample_kind": "zarr",
+      "state": "done",
+      "finish_requested": true,
+      "zarr_save": null
+    },
+    "expect": {
+      "kind": "ask",
+      "can_add": true,
+      "why": "unsaved"
+    },
+    "decided": true
+  },
+  {
+    "name": "finish and save, its dialog cancelled",
+    "run": {
+      "kind": "proseg",
+      "sample_kind": "zarr",
+      "state": "done",
+      "finish_requested": true,
+      "save_cancelled": true,
+      "zarr_save": null
+    },
+    "expect": {
+      "kind": "ask",
+      "can_add": true,
+      "why": "unsaved"
+    },
+    "decided": false
+  },
+  {
+    "name": "finish and save, a save tried since",
+    "run": {
+      "kind": "proseg",
+      "sample_kind": "zarr",
+      "state": "done",
+      "finish_requested": true,
+      "zarr_save": {
+        "state": "failed"
+      }
+    },
+    "expect": {
+      "kind": "ask",
+      "can_add": true,
+      "why": "unsaved"
+    },
+    "decided": false
+  },
+  {
+    "name": "stain stop asked",
+    "run": {
+      "kind": "stain",
+      "sample_kind": "zarr",
+      "state": "finishing",
+      "stain_started": true,
+      "finish_requested": true,
+      "progress": {
+        "done": 3,
+        "total": 6,
+        "revision": 4,
+        "resolved": false
+      },
+      "summary": {
+        "cells": 9
+      },
+      "summary_model": {
+        "cells": 9
+      },
+      "zarr_save": null
+    },
+    "expect": {
+      "kind": "ask",
+      "can_add": true,
+      "why": "unsaved"
+    },
+    "decided": false
+  }
+]

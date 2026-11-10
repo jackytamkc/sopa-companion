@@ -1,0 +1,141 @@
+# The app's tests on Linux at every push to main and every pull request: pytest on Python 3.12 and 3.13 in one
+# environment made as sopa's guide makes it (CPU PyTorch), the page's node tests, and proseg-live's cargo tests. With
+# other_systems (started by hand, and by release.yml before it publishes) also what differs between the systems
+# (tests/test_portable.py: processes, locks, pipes and files) on macOS and Windows; the whole notebook route runs there
+# in release.yml's install job (its runs are grouped apart: github.workflow is the caller's name there).
+# Every action is pinned to the commit of the release named beside it.
+name: tests
+on:
+  push: {branches: [main]}
+  pull_request:
+  workflow_call:
+    inputs:
+      other_systems: {type: boolean, default: false}
+  workflow_dispatch:
+    inputs:
+      other_systems: {description: "Also macOS and Windows", type: boolean, default: false}
+permissions: {contents: read}
+concurrency: {group: "tests-${{ github.workflow }}-${{ github.ref }}", cancel-in-progress: true}
+defaults: {run: {shell: bash}}
+jobs:
+  pytest:
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.12", "3.13"]
+        shard: [main, zarr, api]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    env: {PYTHONUTF8: "1", PYTHONDONTWRITEBYTECODE: "1", CUDA_VISIBLE_DEVICES: ""}
+    steps:
+      # The folder is the package: the tests import it from its parent.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1          # v7.0.1
+        with: {path: sopa_companion, persist-credentials: false}
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0      # v7.1.0
+        with: {python-version: "${{ matrix.python }}"}
+      - uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e        # v10.3.2
+        with: {version: "0.11.28"}
+      # The engine pauses a run (and aborts a test's) under 15 GB free on its data disk (engine/runs.py MIN_FREE_GB); with
+      # the environment installed, a runner keeps about 11 GB: its preinstalled Android, .NET, Haskell and CodeQL go
+      - name: Room on the disk for the engine's runs
+        run: |
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache/CodeQL
+          df -h /
+      - name: One environment as sopa's guide makes it (CPU PyTorch), with the app's needs, the mixing check's and the test tools
+        run: |
+          uv venv --python "$(command -v python)" "$RUNNER_TEMP/env"
+          # qc: scvi-tools and scviva-tools, which the mixing check's trainer learns with (its tests run it on the CPU)
+          python sopa_companion/ci/requirements.py test qc > "$RUNNER_TEMP/app.txt"
+          # s3fs (spatialdata's fsspec[s3]) has a floor: without it uv 0.11.28 backtracks to s3fs 0.3.5 of 2019, whose
+          # setup.py cannot run on Python 3.12 (configparser.SafeConfigParser), and the install fails; pip, which the
+          # README's lines use, takes the current one, as does uv with the floor (2026-11-03)
+          uv pip install --python "$RUNNER_TEMP/env/bin/python" --torch-backend cpu "sopa[cellpose]==2.2.11" "s3fs>=2024.1" -r "$RUNNER_TEMP/app.txt"
+          echo "$RUNNER_TEMP/env/bin" >> "$GITHUB_PATH"
+      - name: The harness folder's stand-in (a small crop, made with sopa)
+        run: python sopa_companion/tests/make_mini_harness.py "$RUNNER_TEMP/harness"
+      - name: pytest (${{ matrix.shard }})
+        working-directory: sopa_companion
+        env:
+          SOPA_COMPANION_SOPA_PYTHON: ${{ runner.temp }}/env/bin/python
+          SOPA_COMPANION_API_PYTHON: ${{ runner.temp }}/env/bin/python
+          SOPA_COMPANION_HARNESS_DIR: ${{ runner.temp }}/harness
+          # The checkout's parent: the helpers tests start in the sopa environment's Python import the app from it, as
+          # the gate's tests do (the app itself is not installed into that environment)
+          PYTHONPATH: ${{ github.workspace }}
+        run: |
+          case "${{ matrix.shard }}" in
+            main) python -m pytest -q -p no:cacheprovider tests --ignore=tests/test_zarr.py --ignore=tests/api ;;
+            zarr) python -m pytest -q -p no:cacheprovider tests/test_zarr.py ;;
+            api)  PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python -m pytest -q -p no:cacheprovider tests/api ;;
+          esac
+  systems:
+    if: inputs.other_systems
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-14, windows-2022]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    env: {PYTHONDONTWRITEBYTECODE: "1"}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1          # v7.0.1
+        with: {path: sopa_companion, persist-credentials: false}
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0      # v7.1.0
+        with: {python-version: "3.12"}
+      - run: python -m pip install "pytest>=8" "psutil>=7.2.2"
+      # The module alone, without the suite's conftest (which needs the sopa environment).
+      - name: pytest (what differs between the systems)
+        working-directory: sopa_companion
+        env: {PYTHONPATH: "${{ github.workspace }}"}
+        run: python -m pytest -q -p no:cacheprovider --noconftest tests/test_portable.py
+  # The mixing check on Windows: PyTorch's CUDA build as a Windows computer with an NVIDIA GPU takes it (the runner has
+  # no GPU, so torch sees none), scvi-tools and scviva-tools, and the real trainer's CPU test fits (learning, export,
+  # self-tests) and the GPU probe's tests. A fit on a Windows GPU needs a computer with one: GitHub's GPU runners are
+  # an organisation's (Team or Enterprise plans).
+  mixing-windows:
+    if: inputs.other_systems
+    runs-on: windows-2022
+    timeout-minutes: 60
+    env: {PYTHONDONTWRITEBYTECODE: "1", CUDA_VISIBLE_DEVICES: ""}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1          # v7.0.1
+        with: {path: sopa_companion, persist-credentials: false}
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0      # v7.1.0
+        with: {python-version: "3.12"}
+      - uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e        # v10.3.2
+        with: {version: "0.11.28"}
+      - name: sopa, the app's needs and the mixing check's, with PyTorch's CUDA 13 build
+        run: |
+          uv venv --python "$(command -v python)" "$RUNNER_TEMP/env"
+          py="$RUNNER_TEMP/env/Scripts/python.exe"
+          python sopa_companion/ci/requirements.py test qc > "$RUNNER_TEMP/app.txt"
+          uv pip install --python "$py" --torch-backend cu130 "sopa[cellpose]==2.2.11" "s3fs>=2024.1" -r "$RUNNER_TEMP/app.txt"
+          "$py" -c "import torch, scvi, scviva; print('torch', torch.__version__, 'CUDA', torch.version.cuda, 'GPU seen', torch.cuda.is_available(), 'scvi-tools', scvi.__version__)"
+          echo "ENV_PY=$py" >> "$GITHUB_ENV"
+      - name: pytest (the mixing check's trainer and GPU probe)
+        working-directory: sopa_companion
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+        run: |
+          SOPA_COMPANION_SOPA_PYTHON="$ENV_PY" "$ENV_PY" -m pytest -q -p no:cacheprovider tests/test_qc_trainer.py tests/test_qc_probe.py
+  page:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1          # v7.0.1
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1        # v7.1.0
+        with: {node-version: "22"}
+      - run: node --test --test-timeout=120000 frontend/test/*.test.mjs
+  cargo:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1          # v7.0.1
+        with: {persist-credentials: false}
+      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8    # master
+        with: {toolchain: "1.94.1"}
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0       # v2.9.3
+        with: {workspaces: "native/proseg -> ../target"}
+      - run: native/build.sh --tree
+      - run: cargo test --release --locked --manifest-path native/proseg/Cargo.toml --bin proseg
+        env: {CARGO_TARGET_DIR: native/target}

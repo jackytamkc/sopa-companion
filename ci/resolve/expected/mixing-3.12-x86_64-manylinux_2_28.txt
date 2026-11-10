@@ -1,0 +1,831 @@
+absl-py==2.5.1
+    # via
+    #   ml-collections
+    #   tensorboard
+aiobotocore==3.10.0
+    # via s3fs
+aiohappyeyeballs==2.7.1
+    # via aiohttp
+aiohttp==3.14.5
+    # via
+    #   aiobotocore
+    #   fsspec
+    #   ome-zarr
+    #   s3fs
+aioitertools==0.13.0
+    # via aiobotocore
+aiosignal==1.4.0
+    # via aiohttp
+anndata==0.13.4
+    # via
+    #   annsel
+    #   mudata
+    #   readfcs
+    #   scanpy
+    #   scvi-tools
+    #   scviva-tools
+    #   sopa
+    #   spatialdata
+    #   spatialdata-io
+annotated-doc==0.0.5
+    # via
+    #   fastapi
+    #   typer
+annotated-types==0.8.0
+    # via pydantic
+annsel==0.1.3
+    # via spatialdata
+anyio==4.15.1
+    # via
+    #   httpx
+    #   starlette
+    #   watchfiles
+array-api-compat==1.15.0
+    # via
+    #   anndata
+    #   fast-array-utils
+    #   transformnd
+attrs==26.1.0
+    # via aiohttp
+botocore==1.43.117
+    # via aiobotocore
+cellpose==4.2.1.1
+    # via sopa
+certifi==2026.10.23
+    # via
+    #   httpcore
+    #   httpx
+    #   pyogrio
+    #   pyproj
+    #   requests
+    #   scanpy
+charset-normalizer==3.5.2
+    # via requests
+click==8.5.0
+    # via
+    #   dask
+    #   distributed
+    #   spatialdata
+    #   spatialdata-io
+    #   uvicorn
+cloudpickle==3.1.2
+    # via
+    #   dask
+    #   distributed
+    #   joblib
+colorcet==3.2.1
+    # via datashader
+contourpy==1.4.0
+    # via matplotlib
+cuda-bindings==13.4.4
+    # via torch
+cuda-pathfinder==1.8.4
+    # via cuda-bindings
+cuda-toolkit==13.0.3.0
+    # via torch
+cycler==0.12.1
+    # via matplotlib
+dask==2026.8.0
+    # via
+    #   dask-image
+    #   distributed
+    #   multiscale-spatial-image
+    #   ome-zarr
+    #   sopa
+    #   spatialdata
+dask-image==2026.5.0
+    # via
+    #   spatialdata
+    #   spatialdata-io
+datashader==0.19.1
+    # via spatialdata
+deprecated==3.0.0
+    # via ome-zarr
+distributed==2026.8.0
+    # via
+    #   dask
+    #   spatialdata
+donfig==0.8.1.post1
+    # via zarr
+fast-array-utils==1.5.1
+    # via scanpy
+fastapi==0.162.0
+    # via -r companion.in
+fastremap==1.21.0
+    # via
+    #   cellpose
+    #   fill-voids
+filelock==4.2.4
+    # via torch
+fill-voids==2.1.2
+    # via cellpose
+flowio==0.9.13
+    # via readfcs
+fonttools==4.67.0
+    # via matplotlib
+formulaic==1.2.2
+    # via statsmodels
+frozenlist==1.8.0
+    # via
+    #   aiohttp
+    #   aiosignal
+fsspec==2026.9.0
+    # via
+    #   dask
+    #   lightning
+    #   ome-zarr
+    #   pytorch-lightning
+    #   s3fs
+    #   spatialdata
+    #   torch
+    #   universal-pathlib
+geopandas==1.2.0
+    # via spatialdata
+google-crc32c==1.9.0
+    # via zarr
+grpcio==1.84.1
+    # via tensorboard
+h11==0.16.0
+    # via
+    #   httpcore
+    #   uvicorn
+h5py==3.16.0
+    # via
+    #   anndata
+    #   mudata
+    #   scanpy
+    #   spatialdata-io
+httpcore==1.0.9
+    # via httpx
+httptools==0.9.0
+    # via uvicorn
+httpx==0.28.1
+    # via -r companion.in
+idna==3.20
+    # via
+    #   anyio
+    #   httpx
+    #   requests
+    #   yarl
+igraph==1.0.0
+    # via
+    #   scviva-tools
+    #   sopa
+imagecodecs==2026.10.10
+    # via
+    #   -r companion.in
+    #   cellpose
+    #   spatialdata-io
+imageio==2.38.1
+    # via
+    #   pims
+    #   scikit-image
+interface-meta==2.0.1
+    # via formulaic
+jinja2==3.1.6
+    # via
+    #   distributed
+    #   torch
+jmespath==1.1.0
+    # via
+    #   aiobotocore
+    #   botocore
+joblib==1.6.0
+    # via
+    #   pynndescent
+    #   scanpy
+    #   scikit-learn
+    #   scvi-tools
+    #   scviva-tools
+    #   spatialdata-io
+kiwisolver==1.5.1
+    # via matplotlib
+lazy-loader==0.6
+    # via scikit-image
+legacy-api-wrap==1.5
+    # via
+    #   anndata
+    #   scanpy
+lightning==2.6.6
+    # via
+    #   scvi-tools
+    #   scviva-tools
+lightning-utilities==0.15.3
+    # via
+    #   lightning
+    #   pytorch-lightning
+    #   torchmetrics
+llvmlite==0.50.0
+    # via
+    #   numba
+    #   pynndescent
+locket==1.0.0
+    # via
+    #   distributed
+    #   partd
+markdown==3.11.2
+    # via tensorboard
+markdown-it-py==4.2.0
+    # via rich
+markupsafe==3.0.4
+    # via
+    #   jinja2
+    #   werkzeug
+matplotlib==3.11.2
+    # via
+    #   matplotlib-scalebar
+    #   scanpy
+    #   seaborn
+    #   spatialdata-plot
+matplotlib-scalebar==0.9.0
+    # via spatialdata-plot
+mdurl==0.1.2
+    # via markdown-it-py
+ml-collections==1.1.0
+    # via scvi-tools
+more-itertools==11.2.1
+    # via annsel
+mpmath==1.3.0
+    # via sympy
+msgpack==1.2.3
+    # via distributed
+msgspec==0.22.0
+    # via zarr
+mudata==0.4.1
+    # via scvi-tools
+multidict==7.2.1
+    # via
+    #   aiobotocore
+    #   aiohttp
+    #   yarl
+multipledispatch==1.0.0
+    # via datashader
+multiscale-spatial-image==2.0.3
+    # via spatialdata
+narwhals==2.27.1
+    # via
+    #   annsel
+    #   formulaic
+    #   scikit-learn
+natsort==8.4.0
+    # via
+    #   anndata
+    #   cellpose
+    #   scanpy
+networkx==3.7
+    # via
+    #   scanpy
+    #   scikit-image
+    #   spatialdata
+    #   torch
+    #   transformnd
+numba==0.68.0
+    # via
+    #   datashader
+    #   fast-array-utils
+    #   pynndescent
+    #   scanpy
+    #   scvi-tools
+    #   sparse
+    #   spatialdata
+    #   umap-learn
+    #   xarray-spatial
+numcodecs==0.17.1
+    # via zarr
+numpy==2.5.4
+    # via
+    #   -r companion.in
+    #   anndata
+    #   cellpose
+    #   contourpy
+    #   dask
+    #   dask-image
+    #   datashader
+    #   fast-array-utils
+    #   fastremap
+    #   fill-voids
+    #   formulaic
+    #   geopandas
+    #   h5py
+    #   imagecodecs
+    #   imageio
+    #   matplotlib
+    #   mudata
+    #   multiscale-spatial-image
+    #   numba
+    #   numcodecs
+    #   ome-zarr
+    #   ome-zarr-models
+    #   opencv-python
+    #   opencv-python-headless
+    #   pandas
+    #   patsy
+    #   pims
+    #   pydantic-zarr
+    #   pyogrio
+    #   pyro-ppl
+    #   roifile
+    #   scanpy
+    #   scikit-image
+    #   scikit-learn
+    #   scikit-misc
+    #   scipy
+    #   scvi-tools
+    #   scviva-tools
+    #   seaborn
+    #   shapely
+    #   sparse
+    #   spatial-image
+    #   spatialdata
+    #   spatialdata-io
+    #   statsmodels
+    #   tensorboard
+    #   tifffile
+    #   torchmetrics
+    #   torchvision
+    #   transformnd
+    #   umap-learn
+    #   xarray
+    #   xarray-dataclass
+    #   xarray-spatial
+    #   zarr
+nvidia-cublas==13.1.1.3
+    # via
+    #   cuda-toolkit
+    #   nvidia-cudnn-cu13
+    #   nvidia-cusolver
+nvidia-cuda-cupti==13.0.85
+    # via cuda-toolkit
+nvidia-cuda-nvrtc==13.0.88
+    # via
+    #   cuda-toolkit
+    #   nvidia-cublas
+nvidia-cuda-runtime==13.0.96
+    # via cuda-toolkit
+nvidia-cudnn-cu13==9.24.0.43
+    # via torch
+nvidia-cufft==12.0.0.61
+    # via cuda-toolkit
+nvidia-cufile==1.15.1.6
+    # via cuda-toolkit
+nvidia-curand==10.4.0.35
+    # via cuda-toolkit
+nvidia-cusolver==12.0.4.66
+    # via cuda-toolkit
+nvidia-cusparse==12.6.3.3
+    # via
+    #   cuda-toolkit
+    #   nvidia-cusolver
+nvidia-cusparselt-cu13==0.8.1
+    # via torch
+nvidia-nccl-cu13==2.30.7
+    # via torch
+nvidia-nvjitlink==13.4.92
+    # via
+    #   cuda-toolkit
+    #   nvidia-cufft
+    #   nvidia-cusolver
+    #   nvidia-cusparse
+nvidia-nvshmem-cu13==3.4.5
+    # via torch
+nvidia-nvtx==13.0.85
+    # via cuda-toolkit
+ome-types==0.7.0
+    # via spatialdata-io
+ome-zarr==0.21.0
+    # via spatialdata
+ome-zarr-models==1.8.1
+    # via ome-zarr
+opencv-python==5.0.0.93
+    # via sopa
+opencv-python-headless==5.0.0.93
+    # via cellpose
+opentelemetry-api==1.45.1
+    # via fastapi
+opt-einsum==3.4.0
+    # via pyro-ppl
+orjson==3.13.0
+    # via -r companion.in
+packaging==26.3
+    # via
+    #   anndata
+    #   dask
+    #   datashader
+    #   distributed
+    #   geopandas
+    #   lazy-loader
+    #   lightning
+    #   lightning-utilities
+    #   matplotlib
+    #   patsy
+    #   pooch
+    #   pydantic-zarr
+    #   pyogrio
+    #   pytorch-lightning
+    #   scanpy
+    #   scikit-image
+    #   statsmodels
+    #   tensorboard
+    #   torchmetrics
+    #   xarray
+    #   zarr
+pandas==3.1.0
+    # via
+    #   anndata
+    #   datashader
+    #   formulaic
+    #   geopandas
+    #   mudata
+    #   narwhals
+    #   scanpy
+    #   scvi-tools
+    #   scviva-tools
+    #   seaborn
+    #   spatialdata
+    #   statsmodels
+    #   xarray
+param==2.4.2
+    # via
+    #   datashader
+    #   pyct
+partd==1.4.2
+    # via dask
+pathlib-abc==0.5.2
+    # via universal-pathlib
+patsy==1.0.3
+    # via
+    #   scanpy
+    #   statsmodels
+pillow==13.0.0
+    # via
+    #   -r companion.in
+    #   imageio
+    #   matplotlib
+    #   scikit-image
+    #   tensorboard
+    #   torchvision
+pims==0.6.0
+    # via dask-image
+platformdirs==4.13.5
+    # via
+    #   -r companion.in
+    #   pooch
+pooch==1.9.0
+    # via
+    #   annsel
+    #   spatialdata
+propcache==0.5.4
+    # via
+    #   aiohttp
+    #   yarl
+protobuf==7.36.2
+    # via tensorboard
+psutil==7.2.2
+    # via
+    #   -r companion.in
+    #   distributed
+pyarrow==26.0.0
+    # via
+    #   -r companion.in
+    #   spatialdata
+    #   spatialdata-io
+pyct==0.6.0
+    # via datashader
+pydantic==2.12.5
+    # via
+    #   fastapi
+    #   ome-types
+    #   ome-zarr-models
+    #   pydantic-extra-types
+    #   pydantic-settings
+    #   pydantic-zarr
+pydantic-core==2.41.5
+    # via pydantic
+pydantic-extra-types==2.11.1
+    # via ome-types
+pydantic-settings==2.16.1
+    # via scverse-misc
+pydantic-zarr==0.10.0
+    # via ome-zarr-models
+pygments==2.21.0
+    # via rich
+pynndescent==0.6.0
+    # via
+    #   scanpy
+    #   umap-learn
+pyogrio==0.13.0
+    # via geopandas
+pyparsing==3.3.3
+    # via matplotlib
+pyproj==3.8.0
+    # via geopandas
+pyro-api==0.1.2
+    # via pyro-ppl
+pyro-ppl==1.9.2
+    # via
+    #   scvi-tools
+    #   scviva-tools
+python-dateutil==2.9.0.post0
+    # via
+    #   aiobotocore
+    #   botocore
+    #   matplotlib
+    #   multiscale-spatial-image
+    #   pandas
+python-dotenv==1.2.4
+    # via
+    #   pydantic-settings
+    #   scverse-misc
+    #   uvicorn
+pytorch-lightning==2.6.6
+    # via lightning
+pyyaml==6.0.3
+    # via
+    #   dask
+    #   distributed
+    #   donfig
+    #   lightning
+    #   ml-collections
+    #   pytorch-lightning
+    #   uvicorn
+rangehttpserver==1.4.0
+    # via ome-zarr
+readfcs==2.1.0
+    # via spatialdata-io
+requests==2.34.2
+    # via
+    #   datashader
+    #   ome-zarr
+    #   pooch
+rich==15.0.0
+    # via
+    #   scvi-tools
+    #   scviva-tools
+    #   spatialdata
+    #   typer
+roifile==2026.9.22
+    # via cellpose
+s3fs==2026.9.0
+    # via fsspec
+scanpy==1.12.4
+    # via
+    #   scvi-tools
+    #   scviva-tools
+    #   sopa
+    #   spatialdata-io
+    #   spatialdata-plot
+scikit-image==0.26.0
+    # via
+    #   ome-zarr
+    #   spatialdata
+    #   spatialdata-io
+scikit-learn==1.9.1
+    # via
+    #   pynndescent
+    #   scanpy
+    #   scvi-tools
+    #   scviva-tools
+    #   spatialdata-plot
+    #   umap-learn
+scikit-misc==0.5.3
+    # via scanpy
+scipy==1.18.1
+    # via
+    #   anndata
+    #   cellpose
+    #   dask-image
+    #   datashader
+    #   fast-array-utils
+    #   formulaic
+    #   mudata
+    #   pynndescent
+    #   scanpy
+    #   scikit-image
+    #   scikit-learn
+    #   scvi-tools
+    #   scviva-tools
+    #   spatialdata
+    #   statsmodels
+    #   umap-learn
+    #   xarray-spatial
+scverse-misc==0.1.7
+    # via
+    #   anndata
+    #   mudata
+    #   scanpy
+scvi-tools==1.5.1
+    # via
+    #   -r mixing.in
+    #   scviva-tools
+scviva-tools==0.1.7
+    # via -r mixing.in
+seaborn==0.13.2
+    # via scanpy
+segment-anything==1.0
+    # via cellpose
+session-info2==0.4.2
+    # via
+    #   annsel
+    #   mudata
+    #   scanpy
+    #   scverse-misc
+setuptools==84.2.1
+    # via
+    #   spatialdata
+    #   tensorboard
+    #   torch
+shapely==2.2.0
+    # via
+    #   geopandas
+    #   spatialdata
+shellingham==1.5.4
+    # via typer
+six==1.17.0
+    # via python-dateutil
+slicerator==1.1.0
+    # via pims
+sopa==2.2.11
+    # via
+    #   -r base.in
+    #   -r companion.in
+sortedcontainers==2.4.0
+    # via distributed
+sparse==0.19.2
+    # via
+    #   scvi-tools
+    #   scviva-tools
+spatial-image==1.2.3
+    # via
+    #   multiscale-spatial-image
+    #   spatialdata
+spatialdata==0.8.0
+    # via
+    #   sopa
+    #   spatialdata-io
+    #   spatialdata-plot
+spatialdata-io==0.7.1
+    # via sopa
+spatialdata-plot==0.4.3
+    # via sopa
+starlette==1.10.0
+    # via fastapi
+statsmodels==0.15.0
+    # via
+    #   scanpy
+    #   scviva-tools
+sympy==1.14.0
+    # via torch
+tblib==3.2.2
+    # via distributed
+tensorboard==2.21.0
+    # via scvi-tools
+tensorboard-data-server==0.7.2
+    # via tensorboard
+texttable==1.7.2
+    # via igraph
+threadpoolctl==3.7.0
+    # via scikit-learn
+tifffile==2026.10.15
+    # via
+    #   -r companion.in
+    #   cellpose
+    #   dask-image
+    #   scikit-image
+    #   spatialdata-io
+toolz==1.2.0
+    # via
+    #   dask
+    #   datashader
+    #   distributed
+    #   ome-zarr
+    #   partd
+torch==2.14.1
+    # via
+    #   cellpose
+    #   lightning
+    #   pyro-ppl
+    #   pytorch-lightning
+    #   scvi-tools
+    #   scviva-tools
+    #   torchmetrics
+    #   torchvision
+torchmetrics==1.9.0
+    # via
+    #   lightning
+    #   pytorch-lightning
+    #   scvi-tools
+torchvision==0.29.1
+    # via cellpose
+tornado==6.6
+    # via distributed
+tqdm==4.70.1
+    # via
+    #   annsel
+    #   cellpose
+    #   lightning
+    #   pyro-ppl
+    #   pytorch-lightning
+    #   scanpy
+    #   scvi-tools
+    #   scviva-tools
+    #   umap-learn
+transformnd==0.9.2
+    # via ome-zarr
+triton==3.8.0
+    # via torch
+typer==0.27.3
+    # via sopa
+typing-extensions==4.16.0
+    # via
+    #   aiohttp
+    #   aiosignal
+    #   anndata
+    #   anyio
+    #   fastapi
+    #   formulaic
+    #   grpcio
+    #   lightning
+    #   lightning-utilities
+    #   numcodecs
+    #   opentelemetry-api
+    #   pydantic
+    #   pydantic-core
+    #   pydantic-extra-types
+    #   pydantic-settings
+    #   pytorch-lightning
+    #   scanpy
+    #   scverse-misc
+    #   spatialdata
+    #   starlette
+    #   torch
+    #   transformnd
+    #   typing-inspection
+    #   xarray-dataclass
+    #   xsdata
+    #   zarr
+typing-inspection==0.4.4
+    # via
+    #   fastapi
+    #   pydantic
+    #   pydantic-settings
+umap-learn==0.5.12
+    # via scanpy
+universal-pathlib==0.3.10
+    # via
+    #   annsel
+    #   spatialdata
+urllib3==2.8.0
+    # via
+    #   botocore
+    #   requests
+    #   xarray-spatial
+uvicorn==0.54.0
+    # via -r companion.in
+uvloop==0.23.0
+    # via uvicorn
+watchfiles==1.3.0
+    # via uvicorn
+websockets==17.3
+    # via uvicorn
+werkzeug==3.1.9
+    # via tensorboard
+wrapt==2.5.1
+    # via
+    #   aiobotocore
+    #   deprecated
+    #   formulaic
+xarray==2026.9.0
+    # via
+    #   datashader
+    #   multiscale-spatial-image
+    #   scvi-tools
+    #   spatial-image
+    #   spatialdata
+    #   xarray-dataclass
+    #   xarray-spatial
+xarray-dataclass==3.0.0
+    # via
+    #   multiscale-spatial-image
+    #   spatial-image
+xarray-spatial==0.10.17
+    # via spatialdata
+xmltodict==1.0.4
+    # via spatialdata-io
+xsdata==26.10
+    # via ome-types
+yarl==1.25.1
+    # via aiohttp
+zarr==3.4.1
+    # via
+    #   -r companion.in
+    #   anndata
+    #   multiscale-spatial-image
+    #   ome-zarr
+    #   ome-zarr-models
+    #   spatialdata
+zict==3.0.0
+    # via distributed
+zstandard==0.25.0
+    # via
+    #   -r companion.in
+    #   xarray-spatial

@@ -1,0 +1,62 @@
+# The sopa-companion package: pure Python. The patched proseg it runs is the proseg-live package (native/package/,
+# GPL v3), built for each platform and installed with it.
+[build-system]
+# setuptools 77 is the first that reads the licence below as an SPDX expression with its file.
+requires = ["setuptools>=77", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sopa-companion"
+description = "SoPA companion: stain segmentation and live proseg for SpatialData, from a notebook or the desktop"
+readme = "README.md"
+# The app's own code. proseg-live, the patched proseg it runs, is a package of its own under the GPL v3 (native/).
+license = "BSD-3-Clause"
+license-files = ["LICENSE"]
+# Zarr 3.4.1, the floor below, needs Python 3.12.
+requires-python = ">=3.12"
+dynamic = ["version"]
+classifiers = ["Programming Language :: Python :: 3.12", "Programming Language :: Python :: 3.13",
+               "Operating System :: POSIX :: Linux", "Private :: Do Not Upload"]
+# These floors admit a SoPA 2.2.11 environment (NumPy 2.4.6, PyArrow 26.0.0, Zarr 3.4.1). sopa itself is a
+# dependency (Cellpose comes with sopa[cellpose]), and so is proseg-live, the patched proseg's own package: 3.2.0.1
+# (the first patch that keeps proseg's own count) or a later patch on proseg 3.2.0, so pip replaces an installed 3.2.0.
+# During the alpha both packages come from a release's files, never from an index (README, Install).
+dependencies = [
+  "sopa>=2.2.10", "proseg-live>=3.2.0.1,==3.2.0.*", "platformdirs>=4",
+  "fastapi>=0.143.2", "uvicorn[standard]>=0.54.0", "orjson>=3.13.0", "zstandard>=0.25.0",
+  "httpx>=0.28.1", "psutil>=7.2.2", "numpy>=2.4.6", "pyarrow>=26.0.0", "zarr>=3.4.1",
+  "tifffile>=2026.9.20", "imagecodecs>=2026.10.10", "pillow>=12.3.0",
+]
+
+[project.optional-dependencies]
+# An explicit API extra; these also stay in the base so sopa[companion] needs only sopa-companion.
+api = ["fastapi>=0.143.2", "uvicorn[standard]>=0.54.0", "orjson>=3.13.0", "zstandard>=0.25.0"]
+sopa = ["sopa>=2.2.10", "spatialdata>=0.8.0"]
+# On macOS 14 (Darwin 23) with Apple silicon, PyTorch 2.14: 2.15 calls Apple's GPU available there but aborts in every
+# linear layer (it needs macOS 15). Later macOS takes the newest PyTorch, and zarr_bridge/devices.py tests Apple's GPU
+# at run time whatever is installed. The Darwin version is matched as text: pip with packaging 22 to 25 stops on any
+# version comparison with platform_release on Linux, whose kernel releases ("6.8.0-45-generic") are not versions.
+stain = ["cellpose>=4",
+         'torch>=2.14,<2.15; sys_platform == "darwin" and platform_machine == "arm64" and "23." in platform_release']
+qc = ["scvi-tools>=1.5", "scviva-tools>=0.1.7", "torch>=2.1.1",
+      'torch>=2.14,<2.15; sys_platform == "darwin" and platform_machine == "arm64" and "23." in platform_release']
+all = ["sopa-companion[sopa,stain,qc]>=0.1"]
+test = ["pytest>=8", "packaging>=24", "jupyter_client>=8", "ipykernel>=6.31"]
+
+[project.scripts]
+# `sopa-companion <command>`: the commands of `python -m sopa_companion` (serve, launch, stop, status, install-desktop).
+sopa-companion = "sopa_companion.cli:main"
+
+[tool.setuptools]
+# The repository's top folder is the package itself (cli.py, engine/, server/, ... sit at the top).
+package-dir = {"sopa_companion" = "."}
+packages = ["sopa_companion", "sopa_companion.analysis", "sopa_companion.api", "sopa_companion.desktop",
+            "sopa_companion.engine", "sopa_companion.server", "sopa_companion.zarr_bridge"]
+include-package-data = false
+
+[tool.setuptools.package-data]
+sopa_companion = ["frontend/index.html", "frontend/src/*", "frontend/styles/*", "frontend/demos/*", "config.example.toml",
+                  "desktop/sopa-companion.svg"]
+
+[tool.setuptools.dynamic]
+version = {attr = "sopa_companion.__version__"}

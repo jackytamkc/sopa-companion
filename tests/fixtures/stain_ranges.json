@@ -1,0 +1,13 @@
+[
+  {"name":"no limits, unknown kept", "area":[1,100,null], "brightness":{"DAPI":[-3,null,20]}, "in_area":[false,false,false], "rules":{}, "keep":[true,true,true]},
+  {"name":"inclusive size ends", "area":[9,10,20,21], "brightness":{}, "in_area":[false,false,false,false], "rules":{"size":{"min":10,"max":20}}, "keep":[false,true,true,false]},
+  {"name":"NEP 50 minimum", "area":[99.99999237,100], "brightness":{}, "in_area":[false,false], "rules":{"size":{"min":99.999995,"max":null}}, "keep":[false,true]},
+  {"name":"NEP 50 maximum", "area":[99.99999237,100], "brightness":{}, "in_area":[false,false], "rules":{"size":{"min":null,"max":99.999995}}, "keep":[true,false]},
+  {"name":"two channels intersect with area", "area":[10,10,10,10,10], "brightness":{"DAPI":[5,6,7,null,8],"Boundary":[2,3,4,1,3]}, "in_area":[false,false,false,false,true], "rules":{"brightness":{"DAPI":{"min":6,"max":8},"Boundary":{"min":null,"max":3}}}, "keep":[false,true,false,true,false]},
+  {"name":"unknown brightness and missing channel", "area":[1,1,1], "brightness":{"DAPI":[null,10,11]}, "in_area":[false,false,false], "rules":{"brightness":{"DAPI":{"min":10,"max":10},"missing":{"min":20,"max":null}}}, "keep":[true,true,false]},
+  {"name":"negative brightness without lower limit", "area":[1,1,1], "brightness":{"DAPI":[-20,-1,1]}, "in_area":[false,false,false], "rules":{"brightness":{"DAPI":{"min":null,"max":0}}}, "keep":[true,true,false]},
+  {"name":"legacy minimum file", "area":[4,5,6], "brightness":{"DAPI":[10,9,10]}, "in_area":[false,false,false], "rules":{"min_area_um2":5,"min_brightness":{"channel":"DAPI","value":10}}, "keep":[false,false,true]},
+  {"name":"brightness double boundary", "area":[1,1], "brightness":{"DAPI":[99.99999237,100]}, "in_area":[false,false], "rules":{"brightness":{"DAPI":{"min":99.999995,"max":null}}}, "keep":[false,true]},
+  {"name":"all removed", "area":[1,2], "brightness":{}, "in_area":[false,false], "rules":{"size":{"min":3,"max":null}}, "keep":[false,false]},
+  {"name":"empty set", "area":[], "brightness":{}, "in_area":[], "rules":{"size":{"min":null,"max":10}}, "keep":[]}
+]

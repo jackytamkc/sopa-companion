@@ -1,0 +1,28 @@
+#stain-patch-boxes{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1}
+#stain-patch-boxes rect{fill:none;stroke:#efb56b;stroke-width:1.5}
+#stain-patch-boxes text{fill:#fff;stroke:#151a21;stroke-width:.4;paint-order:stroke}
+#stain-patch-boxes circle{fill:#efb56b;stroke:#151a21;stroke-width:1;vector-effect:non-scaling-stroke}
+#stain-exclusions{padding:8px 10px;border:1px solid var(--hair);border-radius:5px;font-size:var(--fs-1)}
+#stain-exclusions[hidden]{display:none}
+#stain-settings-report{overflow-wrap:anywhere}
+#stain-patches{padding:8px 10px;border:1px solid var(--hair);border-radius:5px;font-size:var(--fs-1)}
+#stain-patches[hidden]{display:none}
+#stain-patches button{margin:3px;font-size:var(--fs-1)}
+#stain-patches button[aria-pressed="true"]{border-color:var(--ui-accent);color:var(--ui-accent)}
+#stain-patches label{display:flex;align-items:center;gap:8px;margin:6px 0}
+#stain-patches label span{flex:1}
+#stain-patches input{width:100px}
+#stain-patches p{margin:6px 0}
+#stain-patches .missing-note p{margin:0 0 2px}
+#stain-patch-folder,#stain-patch-command{overflow-wrap:anywhere;white-space:pre-wrap}
+/* stain-patches.mjs renderRows: the boxes by keyboard, a row a box with its ×; the row with the focus is outlined. */
+.patch-rows{display:grid;gap:2px;margin:6px 0}
+.patch-rows[hidden]{display:none}
+.patch-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:1px 6px;border-radius:var(--r-2);font-variant-numeric:tabular-nums}
+.patch-row:focus-visible{outline:1px solid var(--ui-accent);outline-offset:1px}
+.patch-row button,#stain-patches .patch-row button{margin:0;padding:0 6px;min-height:0}
+/* patch-folder.mjs: the export dialog (the sample browser's look); its lead line is an explanation, not a warning. */
+#patch-folder-lead .picker-note{color:var(--ink-2)}
+#patch-folder-status{color:var(--ink-2);font-size:var(--fs-2);margin:6px 0}
+#patch-folder-mix{margin:6px 0}
+#patch-folder .badge{color:var(--ink-2);font-size:var(--fs-1);border:1px solid var(--hair);border-radius:10px;padding:0 6px}

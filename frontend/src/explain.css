@@ -1,0 +1,7 @@
+/* explain.mjs: what a button needs before it can go ahead, and the fields it points at. */
+.needs-input,.needs-input:focus,.needs-input:focus-visible{outline:2px solid var(--error);outline-offset:1px}
+.field-note{color:var(--error);font-size:var(--fs-1);margin:2px 0 4px}
+.missing-note{color:var(--error);font-size:var(--fs-2);margin:6px 0 0}
+.missing-note p{margin:0 0 2px;color:inherit}
+.missing-note ul{margin:0;padding-left:18px}
+button[aria-busy="true"]{cursor:progress;opacity:.85}

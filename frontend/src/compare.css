@@ -1,0 +1,143 @@
+/* Compare (compare.mjs): a full-screen dialog over the run page, one column per
+   segmentation (its UMAP on top, its mixing below), the kinds' key under them. Nothing here moves by itself and nothing is
+   blurred: the UMAPs are canvases the script paints (a new layout or colouring cross-fades in once, at most 12 paints a
+   second). The floating cards' tokens (12 px radius, a hairline border, a deep surface, 14 px
+   padding), type 11 / 12.5 / 14 / 28 px, tabular numbers, small caps for labels, one bold line per block (the number).
+   Every column's plot is the same size (the head and the mixing block have fixed heights): one layout drawn at one scale
+   puts the same kind of cell at the same place in every column. The mixing colours are the stage's (stage.js
+   MIXING_COLORS, set by the script on the bars and swatches). */
+.cmp {
+  --cmp-radius:var(--card-radius,12px); --cmp-hair:var(--card-border,rgba(255,255,255,.09)); --cmp-surface:var(--card-surface,rgba(17,21,28,.94));
+  --cmp-pad:var(--card-pad,14px); --cmp-ink:var(--ink-1,#e6eaf0); --cmp-muted:var(--ink-2,#9aa4b2); --cmp-faint:var(--ink-3,#7d8796);
+  --cmp-raised:var(--raised,#1c222b); --cmp-panel:var(--panel,#151a21); --cmp-accent:var(--ui-accent,#7cc4ff); --cmp-page:var(--stage,#0e1116);
+  --cmp-view:#0b0e13; --cmp-warn:var(--warn,#ffb454); --cmp-error:var(--error,#ff6b6b);
+  position:fixed; inset:0; width:100%; height:100%; max-width:none; max-height:none; margin:0; padding:0; border:0; z-index:40;
+  display:flex; flex-direction:column; box-sizing:border-box; overflow:hidden;
+  background:var(--cmp-page); color:var(--cmp-ink); font:12.5px/1.45 var(--font-ui); font-variant-numeric:tabular-nums;
+}
+.cmp:not([open]) { display:none; }
+.cmp::backdrop { background:var(--cmp-page,#0e1116); }
+[data-theme=figure] .cmp { --cmp-surface:var(--panel); --cmp-hair:var(--hair); --cmp-view:#fff; }
+.cmp[hidden], .cmp [hidden] { display:none!important; }
+.cmp * { box-sizing:border-box; }
+.cmp:focus { outline:none; }
+.cmp button:focus-visible, .cmp-info:focus-visible { outline:2px solid var(--focus,#fff); outline-offset:1px; }
+
+/* The header: the title; Add (its menu), Colour by, Back. */
+.cmp-head { flex:none; display:flex; align-items:center; gap:16px; height:56px; padding:0 18px; background:var(--cmp-panel); border-bottom:1px solid var(--cmp-hair); }
+.cmp-names { flex:1; min-width:0; }
+.cmp-title { margin:0; font-size:14px; font-weight:600; line-height:1.3; letter-spacing:0; text-transform:none; color:var(--cmp-ink); }
+.cmp-sub { margin:1px 0 0; font-size:11px; color:var(--cmp-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.cmp-tools { flex:none; display:flex; align-items:center; gap:12px; }
+.cmp-button { display:inline-flex; align-items:center; gap:6px; min-height:30px; padding:4px 11px; font-size:12.5px; color:var(--cmp-ink); }
+.cmp-button svg { flex:none; width:14px; height:14px; }
+.cmp-text { min-height:26px; padding:2px 9px; font-size:12px; }
+.cmp-add-wrap { position:relative; }
+.cmp-add[aria-expanded=true] { border-color:var(--cmp-accent); color:var(--cmp-accent); }
+.cmp-colour { display:flex; align-items:center; gap:8px; }
+.cmp-label { font-size:11px; font-variant-caps:all-small-caps; letter-spacing:.06em; color:var(--cmp-muted); }
+.cmp-seg { display:inline-flex; border:1px solid var(--cmp-hair); border-radius:6px; overflow:hidden; background:var(--cmp-raised); }
+.cmp-seg-button { min-height:28px; padding:3px 12px; border:0; border-radius:0; background:transparent; color:var(--cmp-muted); font-size:12.5px; }
+.cmp-seg-button + .cmp-seg-button { border-left:1px solid var(--cmp-hair); }
+.cmp-seg-button[aria-pressed=true] { background:var(--accent-weak,rgba(124,196,255,.1)); color:var(--cmp-accent); }
+
+/* Add's menu: the sample's segmentations not shown yet, each with its key, what made it and its cells. */
+.cmp-menu { position:absolute; right:0; top:calc(100% + 6px); z-index:3; width:380px; max-height:60vh; overflow:auto; padding:6px;
+  background:var(--cmp-panel); border:1px solid var(--cmp-hair); border-radius:10px; box-shadow:var(--card-shadow,0 18px 48px rgba(0,0,0,.55)); }
+.cmp-menu-title { margin:2px 8px 6px; font-size:11px; font-variant-caps:all-small-caps; letter-spacing:.06em; color:var(--cmp-muted); }
+.cmp-menu-item { display:flex; flex-direction:column; align-items:stretch; gap:1px; width:100%; min-height:0; padding:7px 10px; text-align:left;
+  border:1px solid transparent; border-radius:6px; background:transparent; }
+.cmp-menu-item:hover, .cmp-menu-item:focus-visible { background:var(--cmp-raised); border-color:var(--cmp-hair); filter:none; }
+.cmp-menu-name { font-size:12.5px; color:var(--cmp-ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.cmp-menu-sub { font-size:11px; color:var(--cmp-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.cmp-menu-note { margin:4px 8px 6px; font-size:12px; color:var(--cmp-muted); }
+.cmp-menu .cmp-text { margin:0 8px 6px; }
+
+/* The line under the header: the area all of them cover (its ⓘ), how far the engine is, and what could not be done
+   (Try again), all in one line of a fixed height: nothing under it moves. */
+.cmp-bar { flex:none; display:flex; align-items:center; gap:16px; height:42px; padding:8px 18px 0; }
+.cmp-area { display:flex; align-items:center; flex:1 1 auto; min-width:0; margin:0; font-size:12.5px; color:var(--cmp-ink); }
+.cmp-area-text { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.cmp-progress { flex:none; margin:0; font-size:12px; color:var(--cmp-muted); }
+.cmp-progress:empty { display:none; }
+.cmp-info { display:inline-flex; align-items:center; flex:none; width:16px; height:16px; margin-left:5px; color:var(--cmp-muted); cursor:help; vertical-align:-3px; }
+.cmp-info:hover { color:var(--cmp-ink); }
+.cmp-info svg { display:block; }
+.cmp-alert { flex:0 1 auto; display:flex; align-items:center; gap:10px; min-width:0; }
+.cmp-alert-text { min-width:0; margin:0; font-size:12.5px; color:var(--cmp-error); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.cmp-alert .cmp-text { flex:none; }
+
+/* The columns: as many as chosen (1-4), equal widths. */
+.cmp-columns { flex:1 1 auto; min-height:0; display:grid; grid-template-columns:minmax(0,1fr); gap:14px; padding:12px 18px; }
+.cmp-columns[data-count="2"] { grid-template-columns:repeat(2,minmax(0,1fr)); }
+.cmp-columns[data-count="3"] { grid-template-columns:repeat(3,minmax(0,1fr)); }
+.cmp-columns[data-count="4"] { grid-template-columns:repeat(4,minmax(0,1fr)); }
+.cmp-col { display:flex; flex-direction:column; min-width:0; min-height:0; overflow:hidden;
+  background:var(--cmp-surface); border:1px solid var(--cmp-hair); border-radius:var(--cmp-radius); box-shadow:0 10px 30px rgba(0,0,0,.35); }
+.cmp-col-head { flex:none; display:flex; align-items:flex-start; gap:8px; height:68px; padding:10px 8px 8px var(--cmp-pad); }
+.cmp-col-names { flex:1; min-width:0; }
+.cmp-col-title { margin:0; font-size:14px; font-weight:600; line-height:1.3; letter-spacing:0; text-transform:none; color:var(--cmp-ink);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.cmp-col-sub { margin:1px 0 0; font-size:11px; color:var(--cmp-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+/* Which count the column is read on, under its key and source (a third line: the head keeps one height in every column). */
+.cmp-col-count { margin:1px 0 0; font-size:11px; color:var(--cmp-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.cmp-tool { display:inline-flex; align-items:center; justify-content:center; flex:none; width:28px; height:26px; min-height:0; padding:0;
+  border:1px solid transparent; border-radius:6px; background:transparent; color:var(--cmp-muted); }
+.cmp-tool:hover { color:var(--cmp-ink); background:var(--cmp-raised); border-color:var(--cmp-hair); filter:none; }
+.cmp-tool svg { display:block; }
+
+/* The plot: the UMAP's canvas fills it; over it the wait line, a note when the column covers a small part, how many cells
+   it shows, the hover's tip. */
+.cmp-plot { position:relative; flex:1 1 0; min-height:150px; margin:0 var(--cmp-pad); overflow:hidden; border-radius:8px; border:1px solid var(--cmp-hair);
+  background:var(--cmp-view); }
+.compare-umap { position:absolute; inset:0; display:block; width:100%; height:100%; }
+.cmp-wait { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; margin:0; padding:12px; text-align:center;
+  font-size:12px; color:var(--cmp-muted); pointer-events:none; }
+.cmp-col-note { position:absolute; left:8px; top:8px; right:8px; width:max-content; max-width:calc(100% - 16px); margin:0; padding:1px 8px;
+  font-size:11px; line-height:1.6; color:var(--cmp-warn); background:rgba(11,14,19,.82); border:1px solid rgba(255,180,84,.3); border-radius:10px;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:help; }
+.cmp-shown { position:absolute; left:8px; bottom:6px; margin:0; padding:1px 6px; font-size:11px; color:var(--cmp-muted); background:rgba(11,14,19,.75);
+  border-radius:4px; cursor:help; }
+.cmp-tip { position:absolute; z-index:2; max-width:min(360px, calc(100% - 8px)); padding:6px 9px; pointer-events:none; background:rgba(11,14,19,.95); border:1px solid var(--cmp-hair);
+  border-radius:8px; box-shadow:0 8px 24px rgba(0,0,0,.5); }
+.cmp-tip p { margin:0; }
+.cmp-tip-kind { display:flex; align-items:center; gap:6px; font-size:12.5px; color:var(--cmp-ink); white-space:nowrap; }
+.cmp-tip-share { margin-top:2px!important; font-size:12px; color:var(--cmp-muted); }
+.cmp-swatch { display:inline-block; flex:none; width:10px; height:10px; border-radius:3px; }
+
+/* A column's mixing: the number (the one bold line), like for like, the histogram in the stage's three colours (one
+   scale for every column), the cells, the median and the share under 100. A fixed height: every plot the same size. */
+.cmp-mixing { flex:none; height:248px; overflow:hidden; padding:12px var(--cmp-pad) var(--cmp-pad); }
+.cmp-mixing > * { max-width:640px; }   /* one column fills the width: its numbers keep a readable measure */
+.cmp-mixed { display:flex; align-items:baseline; flex-wrap:wrap; gap:0 6px; min-height:34px; margin:0; font-size:12.5px; color:var(--cmp-ink); }
+.cmp-big { font-size:28px; font-weight:600; line-height:1.15; letter-spacing:-.01em; }
+.cmp-tail { color:var(--cmp-ink); }
+.cmp-rough { padding:0 6px; font-size:11px; line-height:1.5; color:var(--cmp-muted); border:1px solid var(--cmp-hair); border-radius:8px; cursor:help; }
+.cmp-mixed .cmp-info { align-self:center; }
+.cmp-like { display:flex; align-items:center; margin:2px 0 0; font-size:12.5px; color:var(--cmp-muted); }
+.cmp-hist { margin:10px 0 0; cursor:help; }
+.cmp-hist-title { margin:0 0 6px; font-size:11px; font-variant-caps:all-small-caps; letter-spacing:.06em; color:var(--cmp-muted); }
+.cmp-bars { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:4px; align-items:end; height:58px; border-bottom:1px solid var(--cmp-hair); }
+.cmp-bin { display:flex; align-items:flex-end; height:100%; }
+.cmp-bin i { display:block; width:100%; min-height:1px; border-radius:2px 2px 0 0; }
+.cmp-ticks { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:4px; margin-top:3px; font-size:11px; color:var(--cmp-faint); text-align:center;
+  white-space:nowrap; }
+.cmp-stats { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin:10px 0 0; }
+.cmp-stat { min-width:0; cursor:help; }
+.cmp-stat dd { margin:0; font-size:14px; line-height:1.3; color:var(--cmp-ink); }
+.cmp-stat dt { font-size:11px; line-height:1.25; font-variant-caps:all-small-caps; letter-spacing:.04em; color:var(--cmp-muted); }   /* two lines in a narrow column */
+.cmp-col-error { margin:8px 0 0; font-size:12.5px; color:var(--cmp-error); }
+
+/* The key under the columns: the kinds (or the three steps of mixing); pointing at one lights its cells. Room for two
+   rows of kinds whichever key shows (a press on Kind or Mixing never changes the plots' size); more scroll inside it. */
+.cmp-key { flex:none; display:flex; align-items:center; align-content:center; flex-wrap:wrap; gap:6px 18px; height:76px; overflow:hidden auto;
+  padding:8px 18px; background:var(--cmp-panel); border-top:1px solid var(--cmp-hair); }
+/* The title stays at the start of the first row and the items wrap beside it (a title on a row of its own pushed the second
+   row of kinds out of sight). */
+.cmp-key-group { display:flex; align-items:flex-start; gap:4px 12px; min-width:0; }
+.cmp-key-title { display:inline-flex; align-items:center; flex:none; min-height:24px; font-size:11px; font-variant-caps:all-small-caps; letter-spacing:.06em; color:var(--cmp-muted); }
+.cmp-key-items { display:flex; flex-wrap:wrap; flex:1 1 auto; min-width:0; gap:2px 6px; margin:0; padding:0; list-style:none; }
+.cmp-key-button { display:inline-flex; align-items:center; gap:6px; min-height:24px; padding:1px 7px; border:1px solid transparent; border-radius:6px;
+  background:transparent; font-size:12px; color:var(--cmp-ink); }
+.cmp-key-button:hover, .cmp-key-button:focus-visible { background:var(--cmp-raised); border-color:var(--cmp-hair); filter:none; }
+.cmp-key-note { display:flex; align-items:center; gap:10px; margin:0; font-size:12px; color:var(--cmp-muted); }

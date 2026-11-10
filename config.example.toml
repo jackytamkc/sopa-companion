@@ -1,0 +1,155 @@
+# SoPA companion settings: the defaults that ship, with every setting a computer may need (the engine also reads two
+# that only test engines set: [proseg] keep_unsaved and max_active_runs).
+#
+# Installed with pip, the app reads this file, then your own settings file, ~/.config/sopa-companion/config.toml
+# (under $XDG_CONFIG_HOME when that is set): put only the lines you change there. Run from a source folder (a clone),
+# it reads config.toml there when there is one, else this file, then config.local.toml when present; neither goes into
+# git, and your own settings file is not read.
+#
+# "auto" finds things for you: each helper runs in the app's own Python when that Python has the packages it needs
+# (an empty value means the same; "off" turns the feature off); a path names another environment's Python instead.
+# "~" stands for your home folder in every path.
+#
+# From a notebook (sopa_companion.launch), the app's files are read first and then your own settings file, always.
+# launch() takes these from them: [api], [desktop] browser and chrome_flags, [proseg] binary, [analysis] python and gpu,
+# [stain] python and gpu, [qc] python and gpu; other settings there do not reach the session's engine. There "auto"
+# means the kernel's own Python when it has the packages; the sample is read and saved with the kernel's own Python.
+
+[server]
+host = "127.0.0.1"                 # loopback only: the engine refuses any other address
+port = 8777                        # when it is taken, the next free port up to 8876
+allowed_hosts = ["127.0.0.1", "localhost", "[::1]"]
+token = "auto"                     # a new random session token at every start
+
+[desktop]
+# Where the app opens: "default", your default web browser (a new tab); or "chrome", an app window of its own in
+# Google Chrome or a Chromium that is not a snap, with its own profile and chrome_flags ("auto", the previous versions'
+# value, is "chrome"). On Linux, the name of a browser's .desktop file picks that browser. When no browser can be
+# opened (no desktop, a browser that cannot read the app's private opening page), launch prints a link.
+browser = "default"
+# Flags for the Chrome app window only (browser = "chrome"), and for a notebook session's window. The basic password
+# store avoids a keyring prompt on the window's own new profile; the far date keeps Chrome's out-of-date bubble away.
+# On a remote desktop where Chrome draws pages in software, adding "--use-angle=vulkan" and "--ignore-gpu-blocklist"
+# lets it use the GPU.
+chrome_flags = ["--password-store=basic", "--simulate-outdated-no-au=Tue, 31 Dec 2099 23:59:59 GMT"]
+start_timeout_s = 60
+# How long launch waits for the app to open in the browser before it also prints a link (0: it does not wait); a link
+# goes to a terminal only (the icon's launch prints the address and how to ask for one).
+open_wait_s = 20
+# Closing: once the last page has closed (it says goodbye as it goes) and none came back within close_grace_s
+# seconds, or close_grace_pending_s while a run waits for an answer (a reload comes back sooner), the engine shuts
+# down; a run nobody answered for is discarded. A page that went without a goodbye (a crash, a sleeping computer,
+# a tab the browser put away) is away: its runs pause and the engine waits for the app to be opened again; with
+# nothing waiting for an answer it stops after away_stop_s seconds (0: never). sopa-companion stop ends it any time.
+exit_when_closed = true
+close_grace_s = 6
+close_grace_pending_s = 20
+away_stop_s = 1800
+# How long the desktop save-or-discard dialog waits before discarding (0: wait); it asks after any other kind of
+# shutdown (the engine stopped from outside). Without a display or an answer, closing discards unsaved runs;
+# `stop --force` discards what nobody answered for (a save already under way is finished first).
+save_dialog_timeout_s = 600
+# The Chrome app window's own profile (browser = "chrome"). "auto": one per engine; else a path.
+profile_dir = "auto"
+
+[paths]
+# Runs (snapshots, crops) and caches: they can grow to many GB. "auto": installed, ~/.local/share/sopa-companion
+# (whatever $XDG_DATA_HOME says); in a source folder, var/ inside it. A relative path is inside the app's folder.
+data_dir = "auto"
+# The engine's private state (runtime file, logs, crash reports): "auto" is ~/.local/state/sopa-companion. Keep it on
+# a disk that keeps Unix file permissions.
+state_dir = "auto"
+# Folders of Xenium output bundles that runs made by older versions refer to. Samples are opened as SpatialData zarrs.
+sample_roots = []
+
+[proseg]
+# The patched proseg the app runs (proseg 3.2.0 with live mode). "auto": a source folder's own build
+# (native/bin/proseg-live, from native/build.sh), else the proseg-live installed with the app (the README's Install
+# installs both), else one in ~/.local/bin or on your PATH that says it is proseg 3.2.0. Or a path to it.
+binary = "auto"
+# Threads per run, or "auto": half the cores (at most 32) for a run on a region, three quarters for a whole-sample
+# (tiled) run, which scales further. The rest keep the desktop and the app's window responsive.
+threads = "auto"
+tiled_threads = "auto"
+# The square drawn when a sample opens, and the largest region a run accepts (micrometres).
+default_region_um = 300
+max_region_um = 1200
+
+[analysis]
+# Clusters & UMAP, Go deeper, Compare and the mixing check's scores. With RAPIDS (cupy, cuML, cuGraph, cuDF) and an
+# NVIDIA GPU they run on the GPU, else on the CPU with what sopa installs (scipy, scikit-learn, igraph, umap-learn,
+# numba). "auto": the app's own Python when it has those; "off": these are off; or another environment's Python:
+# python = "~/miniforge3/envs/rapids/bin/python"
+python = "auto"
+backend = "auto"                   # "gpu" or "cpu" to choose; "auto": the GPU when RAPIDS and a CUDA GPU are there
+gpu = 0                            # which GPU; on a computer with two, the second keeps it apart from [qc]'s learning
+# Clusters & UMAP start from resolution (0.1-3) and min_counts (1-500), and from n_neighbors (5-50, default 15),
+# min_dist (0-1, default 0.3) and n_top_genes (50-10000 on the GPU, at most 5000 on the CPU; default 2000) when set;
+# the UMAP pane's Advanced settings change them per run, and new runs start with the settings last applied.
+resolution = 1.0
+min_counts = 10
+# 0: as fast as the worker goes on a GPU (each run's newest frame is analysed as soon as the last analysis ends); the
+# CPU spaces its passes by "auto" then. A number of seconds (or "auto": the run's cells / 15,000 s, 0.5-6 s) spaces the
+# automatic analyses out; frames you scrub to are analysed at once either way.
+min_interval_s = 0
+# Proseg's own count, which every number about a cell's RNA reads (none of these is an option on screen). The iterations
+# the app asks proseg to count wait in a spool on the RAM disk (/dev/shm, when it has twice counts_spool_mb free; else
+# the system's temporary folder), at most counts_spool_mb MB a run (64 or more; twice that for all runs together), and
+# none is asked for while the spool's disk has less than twice counts_spool_mb free; proseg's counting takes at most
+# counts_extract_share of its time (above 0, at most 1); counts_mb_s caps the MB counted per second (0: no cap; for a
+# spool on a slow disk).
+counts_spool_mb = 1024
+counts_extract_share = 0.10
+counts_mb_s = 0
+
+[zarr]
+# Opening SpatialData samples, their priors and saving results need sopa and spatialdata. "auto": the app's own
+# Python (sopa comes with the app); or another environment's Python. The open dialog starts in browse_start (empty:
+# your home folder).
+python = "auto"
+browse_start = ""
+
+[qc]
+# The mixing check: each sample is learned once with ResolVI (scvi-tools with scviva-tools, and torch), used
+# read-only, on GPU 0 only (an NVIDIA card; on a Mac without one, its own GPU where it passes a short test: PyTorch 2.15
+# needs macOS 15 there, macOS 14 PyTorch 2.14), at the lowest priority, once that GPU has the free memory learning
+# that sample needs (gpu_min_free_mb; a Mac never waits: only one with less than that in all is refused); the
+# [analysis] worker then
+# scores every analysed iteration. "auto": the app's own Python when it has them; "off"; or another environment's
+# Python. On screen it starts off, and nothing is learned until it is switched on.
+python = "auto"
+gpu = 0                            # must be 0
+enabled_by_default = false
+learn = "start"                    # learn a sample when a run starts with the check on, or when it is switched on
+                                   # ("open": also when a sample opens with it on; "toggle": only when switched on)
+tables = ["xenium_table", "table"] # tried first, then any other table of the sample: the first holding whole counts
+                                   # whose cells can be placed (centroids, or the outlines it annotates) is learned
+priors = "pooled"                  # genes and priors pooled over the sample's tables ("table": the learned one only)
+mixed_at = 0.30                    # a cell "looks mixed" at >= 30 % neighbour-like RNA
+judge_min_counts = 100             # cells with fewer transcripts are not judged
+fit_min_counts = 20                # cells used for learning, and scored at all
+epochs = 50
+min_steps = 3000
+bin_um_detail = 50                 # per-bin sums: 50 um bins in runs on a region, 100 um in whole-sample (tiled) runs
+bin_um_tiled = 100
+gpu_min_free_mb = "auto"         # "auto": what the sample's panel needs (about 0.9 GB and 0.6 MB a gene, with a
+                                 # margin: 2.0 GB for 1,000 genes, 4.8 GB for 5,000, 8.4 GB for 10,000; on a Mac its
+                                 # cells' counts too, against the Mac's memory in all); a number: MB
+
+[stain]
+# Stain segmentation: Cellpose (and the tissue and training-patch helpers). "auto": the app's own Python when it has
+# Cellpose; "off"; or another environment's Python.
+python = "auto"
+gpu = 0
+tile_pixels = 1024
+overlap_pixels = 128
+
+[api]
+# A notebook's session (sopa_companion.launch) only; the desktop engine never reads these. launch(scratch_dir=...) and
+# launch(model_cache=...) win over the settings of the same names.
+# The engine's Python. Empty: the kernel's own, which then needs the engine's packages (the sopa-companion wheel's).
+engine_python = ""
+# Where each session's runs and caches go; they are removed when the session ends. Empty: the system's temporary folder.
+scratch_dir = ""
+# A folder that keeps the mixing check's learned models between sessions. Empty: they go with the session.
+model_cache = ""

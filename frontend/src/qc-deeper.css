@@ -1,0 +1,183 @@
+/* Go deeper (qc-deeper.js): the per-cell window
+   inside the stage, a floating card, and the mixing check's "Go deeper ›" button. Linked after qc.css. Nothing here
+   animates: no keyframes, no transitions, no blur; qc-deeper.js draws the motion itself, only when something changed (at
+   most 4 paints an update), and the stage draws the suspects' glow.
+   The floating cards share one set of tokens (--card-radius, --card-border, --card-surface, --card-shadow, --card-pad);
+   this window's own values stand in until the page defines them. Type: 11 / 12.5 / 14 / 28 px, tabular numerals, muted
+   secondary text, at most one bold line per block. Colours: its own #3987e5 (the app's --slot-a), from neighbours #d55181
+   (the check's accent: magenta means "from neighbours" everywhere), loose RNA #b8c0cc, the suspects' glow #ff4fa3; the
+   light figure theme #2a78d6 / #b2477a / #8a94a3. Icons are inline SVG, one stroke weight, in the text's colour. */
+.qc-deeper {
+  --dp-own:#3987e5; --dp-nb:#d55181; --dp-loose:#b8c0cc; --dp-tag:#f08cbc; --dp-same:#9aa4b2; --dp-glow:#ff4fa3;
+  --dp-pad:var(--card-pad, 14px); --dp-line:var(--card-border, rgba(255,255,255,.09)); --dp-well:rgba(255,255,255,.035);
+  --dp-fs-s:11px; --dp-fs-m:12.5px; --dp-fs-l:14px; --dp-fs-xl:28px;
+  --qc-accent:#d55181; --qc-mixed:#f08cbc;   /* the check's own controls reused here (the learning bar) */
+  position:absolute; left:0; top:0; z-index:5; width:360px; max-width:calc(100% - 16px); max-height:calc(100% - 16px);
+  display:flex; flex-direction:column; overflow:hidden; box-sizing:border-box;
+  background:var(--card-surface, rgba(17,21,28,.94)); border:1px solid var(--dp-line); border-radius:var(--card-radius, 12px);
+  box-shadow:var(--card-shadow, 0 18px 48px rgba(0,0,0,.55));
+  color:var(--ink-1); font:var(--dp-fs-m)/1.45 var(--font-ui); font-variant-numeric:tabular-nums;
+}
+[data-theme=figure] .qc-deeper { --dp-own:#2a78d6; --dp-nb:#b2477a; --dp-loose:#8a94a3; --dp-glow:#d6337f; --dp-line:var(--hair); --dp-well:var(--raised);
+  background:var(--panel); box-shadow:0 10px 30px rgba(0,0,0,.18); }
+.qc-deeper[hidden], .qc-deeper [hidden] { display:none!important; }
+.qc-deeper * { box-sizing:border-box; }
+.qc-deeper:focus { outline:none; }
+.qc-deeper:focus-visible { outline:2px solid var(--focus); outline-offset:2px; }
+.qc-deeper button:focus-visible, .qc-deeper summary:focus-visible, .qc-deeper tr:focus-visible { outline:2px solid var(--focus); outline-offset:1px; }
+
+/* Icons and the info marks: a label that holds a tooltip shows a muted info icon and the help cursor. */
+.qc-deeper-icon { display:inline-flex; flex:none; line-height:0; }
+.qc-deeper-icon svg { width:14px; height:14px; fill:none; stroke:currentColor; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; }
+.qc-deeper-number-label .qc-deeper-icon, .qc-deeper-label .qc-deeper-icon, .qc-deeper-estimate .qc-deeper-icon { color:var(--ink-3, #7d8796); }
+.qc-deeper-number-label .qc-deeper-icon svg, .qc-deeper-label .qc-deeper-icon svg, .qc-deeper-estimate .qc-deeper-icon svg { width:12px; height:12px; }
+.qc-deeper-number-label, .qc-deeper-label[title]:not([title=""]), .qc-deeper-estimate, .qc-deeper-basis, .qc-deeper-step, .qc-deeper-pinned,
+.qc-deeper-notes p[title], .qc-deeper-same, .qc-deeper-glow-legend, .qc-deeper-glow-unlit, .qc-deeper-where-gene,
+.qc-deeper-where-into, .qc-deeper-where-head, .qc-deeper-own p[title], .qc-deeper-loose p, .qc-deeper-where-status p[title] { cursor:help; }
+
+/* The header: the drag handle (double-click puts the window back); the cell's name holds what the window shows. */
+.qc-deeper-head { display:flex; align-items:center; gap:10px; padding:12px 10px 8px var(--dp-pad); cursor:grab; user-select:none; touch-action:none; }
+.qc-deeper-swatch { flex:none; width:10px; height:10px; border-radius:50%; background:var(--dp-own); box-shadow:0 0 0 2px rgba(255,255,255,.12); }
+.qc-deeper-names { flex:1; min-width:0; display:flex; flex-direction:column; gap:1px; }
+.qc-deeper-cell { margin:0; font-size:var(--dp-fs-l); font-weight:600; line-height:1.25; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:0; text-transform:none; color:var(--ink-1); }
+.qc-deeper-frame { color:var(--ink-2); font-size:var(--dp-fs-s); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.qc-deeper-frame:empty { display:none; }
+.qc-deeper-tools { display:flex; gap:2px; flex:none; align-self:flex-start; }
+.qc-deeper-tool { display:inline-grid; place-items:center; width:26px; height:26px; padding:0; border:1px solid transparent; border-radius:8px; background:transparent;
+  color:var(--ink-2); font:inherit; cursor:pointer; }
+.qc-deeper-tool:hover { color:var(--ink-1); background:var(--dp-well); border-color:var(--dp-line); }
+.qc-deeper-pinned { margin:0 var(--dp-pad) 8px; color:var(--ink-2); font-size:var(--dp-fs-s); }
+.qc-deeper-back { margin:0 var(--dp-pad) 8px; align-self:flex-start; font-size:var(--dp-fs-s); }
+
+/* States other than a result (off, learning, the details, too few transcripts, errors), and "Working out…". */
+.qc-deeper-state { padding:2px var(--dp-pad) 14px; }
+.qc-deeper-state p { margin:0 0 6px; overflow-wrap:anywhere; }
+.qc-deeper-state .qc-button { margin-top:2px; }
+.qc-deeper-state .qc-progress { margin:4px 0 8px; }
+/* The check off: its switch, and "Test a setting here…" beside it while the page can test the cell (each its own width;
+   in a narrow window the entry goes under the switch). */
+.qc-deeper-off-row { display:flex; flex-wrap:wrap; gap:6px; }
+.qc-deeper-off-row .qc-deeper-test-open { flex:0 1 auto; }
+
+/* The result: the headline (the number, its label, the small line and its basis: proseg's count), the bar and its legend
+   stay pinned; the sections scroll inside. */
+.qc-deeper-body { display:flex; flex-direction:column; flex:1; min-height:0; }
+.qc-deeper-dim { opacity:.4; }
+.qc-deeper-headline { padding:0 var(--dp-pad); }
+.qc-deeper-number-line { display:flex; align-items:center; gap:10px; }
+.qc-deeper-number { flex:none; font-size:var(--dp-fs-xl); font-weight:600; letter-spacing:-.5px; line-height:1.05; color:var(--ink-1); }
+.qc-deeper-number-label { flex:1; min-width:0; display:inline-flex; align-items:center; gap:5px; font-size:var(--dp-fs-m); line-height:1.3; color:var(--ink-1); }
+.qc-deeper-trend { flex:none; display:flex; flex-direction:column; align-items:flex-end; gap:1px; }
+.qc-deeper-spark { margin:0; display:flex; flex-direction:column; align-items:flex-end; }
+.qc-deeper-spark-canvas { display:block; width:96px; height:28px; }
+.qc-deeper-spark-start, .qc-deeper-basis { font-size:var(--dp-fs-s); line-height:1.25; color:var(--ink-2); white-space:nowrap; }
+.qc-deeper-step { margin:6px 0 2px; color:var(--ink-1); }
+.qc-deeper-notes p { margin:0 0 2px; color:var(--ink-2); font-size:var(--dp-fs-s); }
+.qc-deeper-bar { display:flex; gap:2px; height:10px; margin:10px var(--dp-pad) 6px; border-radius:5px; overflow:hidden; background:var(--dp-well); }
+.qc-deeper-seg { display:block; flex:1 1 0; min-width:0; height:100%; }
+/* The three parts' colours (the bar, the table's row bars); .qc-deeper-own and .qc-deeper-loose are the sections. */
+.qc-deeper-part-own { background:var(--dp-own); }
+.qc-deeper-part-nb { background:var(--dp-nb); }
+.qc-deeper-part-loose { background:var(--dp-loose); }
+.qc-deeper-legend { display:flex; flex-wrap:wrap; gap:2px 12px; margin:0 var(--dp-pad) 6px; color:var(--ink-2); font-size:var(--dp-fs-s); }
+.qc-deeper-key { display:inline-flex; align-items:center; gap:5px; cursor:help; white-space:nowrap; }
+.qc-deeper-key i { display:inline-block; width:8px; height:8px; border-radius:2px; }
+.qc-deeper-key-own i { background:var(--dp-own); }
+.qc-deeper-key-nb i { background:var(--dp-nb); }
+.qc-deeper-key-loose i { background:var(--dp-loose); }
+.qc-deeper-scroll { flex:1; min-height:0; overflow-y:auto; overscroll-behavior:contain; padding:0 var(--dp-pad) 10px; border-top:1px solid var(--dp-line); }
+.qc-deeper-scroll section { padding:10px 0; border-bottom:1px solid var(--dp-line); }
+.qc-deeper-scroll p { margin:0 0 4px; overflow-wrap:anywhere; }
+.qc-deeper-muted { color:var(--ink-2); font-size:var(--dp-fs-s); }
+/* Section labels in small caps. */
+.qc-deeper-label { display:flex; align-items:center; gap:5px; margin:0 0 6px; font-size:var(--dp-fs-m); font-weight:500; line-height:1.2;
+  font-variant-caps:all-small-caps; letter-spacing:.06em; text-transform:none; color:var(--ink-2); }
+
+/* From neighbours: the neighbour genes (chips with a magenta rule), the neighbours (rows of a fixed height: they slide on
+   rank changes without a layout read; two lines in 60 px + 4 px, ROW_PITCH), Show on the image. */
+.qc-deeper-foreign { display:flex; flex-wrap:wrap; gap:4px; margin:0 0 10px; }
+.qc-deeper-chip { display:inline-block; padding:1px 7px 1px 6px; border:1px solid var(--dp-line); border-left:3px solid var(--dp-nb); border-radius:6px;
+  background:var(--dp-well); color:var(--ink-1); font-size:var(--dp-fs-s); line-height:1.6; white-space:nowrap; }
+.qc-deeper-chip.qc-deeper-pulse { border-left-color:var(--dp-tag); box-shadow:0 0 0 1px var(--dp-tag); }
+.qc-deeper-more { min-height:0; color:var(--ui-accent); border-left:1px solid var(--dp-line); font:inherit; font-size:var(--dp-fs-s); cursor:pointer; }
+.qc-deeper-sources-heading { margin-top:4px; }
+.qc-deeper-sources { list-style:none; margin:0 0 4px; padding:0; }
+.qc-deeper-source { position:relative; height:60px; margin:0 0 4px; padding:6px 6px 6px 10px; border:1px solid var(--dp-line); border-radius:8px; background:var(--dp-well); overflow:hidden; }
+.qc-deeper-source.qc-deeper-lifted { border-color:var(--dp-nb); background:rgba(213,81,129,.08); }
+.qc-deeper-source-main { display:flex; align-items:center; gap:8px; height:26px; white-space:nowrap; }
+.qc-deeper-source-sub { height:18px; padding-left:16px; line-height:18px; color:var(--ink-2); font-size:var(--dp-fs-s); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.qc-deeper-group { flex:none; width:8px; height:8px; border-radius:50%; background:var(--dp-same); }
+.qc-deeper-source-name { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; }
+.qc-deeper-source-bar { flex:0 0 44px; height:4px; border-radius:2px; background:var(--dp-line); overflow:hidden; }
+.qc-deeper-source-bar i { display:block; height:100%; background:var(--dp-nb); }
+.qc-deeper-source-share { flex:0 0 38px; text-align:right; }
+/* A neighbour that looks like the cell's own kind: its share can't be checked, so it is grey, never the magenta of a
+   source the genes back up (the stage draws it as a grey dotted outline, no arrow). */
+.qc-deeper-source[data-same="1"] .qc-deeper-source-bar i { background:var(--dp-same); }
+.qc-deeper-source[data-same="1"] .qc-deeper-source-sub { font-style:italic; }
+.qc-deeper-show, .qc-deeper-go { flex:none; min-height:22px; height:22px; padding:0 8px; border-radius:6px; font-size:var(--dp-fs-s); line-height:20px; }
+.qc-deeper-go { display:inline-grid; place-items:center; width:24px; padding:0; }
+/* Pressed while its neighbour's suspects glow: the glow's own colour. */
+.qc-deeper-show[aria-pressed=true] { border-color:var(--dp-glow); background:rgba(255,79,163,.14); color:var(--ink-1); }
+.qc-deeper-fold { color:var(--ink-2); font-size:var(--dp-fs-s); }
+
+/* Show on the image: the toggle under the rows, pressed while the suspects glow and
+   the chips' genes are lit on the stage; each chip then wears its gene's dot colour on a wider rule, and Where they sit
+   gives the glow's line, then per source each gene beside a dot of that colour. "Test a setting here…" shares its row
+   (half each; the toggle alone takes it all), never greyed out, and goes with it (with the check off: the off row). */
+.qc-deeper-where-row { display:flex; gap:6px; margin:10px 0 2px; }
+.qc-deeper-where-toggle { flex:1 1 0; min-width:0; display:flex; align-items:center; justify-content:center; gap:6px; white-space:nowrap; overflow:hidden; }
+.qc-deeper-where-toggle > span:last-child { min-width:0; overflow:hidden; text-overflow:ellipsis; }
+.qc-deeper-test-open { flex:1 1 0; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-align:center; }
+.qc-deeper-where-toggle[aria-pressed=true] { border-color:var(--dp-glow); background:rgba(255,79,163,.14); }
+.qc-deeper-chip[data-dot] { border-left-width:7px; }
+/* The glow's line may wrap to two lines in the window: its dot stays beside the first. */
+.qc-deeper-glow-legend { display:flex; align-items:flex-start; gap:8px; margin:0 0 6px!important; }
+.qc-deeper-glow-dot { flex:none; width:8px; height:8px; margin-top:5px; border-radius:50%; background:var(--dp-glow);
+  box-shadow:0 0 0 2px rgba(255,79,163,.25), 0 0 8px 2px rgba(255,79,163,.55); }
+.qc-deeper-where-status p { margin:0 0 4px; color:var(--ink-2); font-size:var(--dp-fs-s); }
+.qc-deeper-where-source { margin:6px 0 8px; }
+.qc-deeper-where-head { margin:0 0 3px!important; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.qc-deeper-where-gene, .qc-deeper-where-into { position:relative; margin:0 0 3px!important; padding-left:16px; }
+.qc-deeper-where-into { color:var(--ink-2); font-size:var(--dp-fs-s); }
+.qc-deeper-where-dot { position:absolute; left:2px; top:5px; width:8px; height:8px; border-radius:50%; box-shadow:0 0 0 1.5px #0b0e13; }
+
+/* All genes: a table of fixed-height rows (virtualised: 12 in view, the rest scroll inside). */
+.qc-deeper-table, .qc-deeper-how { padding:8px 0; border-bottom:1px solid var(--dp-line); }
+.qc-deeper-table > summary, .qc-deeper-how > summary { cursor:pointer; color:var(--ink-2); font-size:var(--dp-fs-s); }
+.qc-deeper-table-scroll { max-height:386px; margin-top:6px; overflow-y:auto; overscroll-behavior:contain; }
+.qc-deeper-table table { width:100%; border-collapse:collapse; table-layout:fixed; font-size:var(--dp-fs-s); }
+.qc-deeper-table th { position:sticky; top:0; z-index:1; padding:3px 4px; background:#151a21; color:var(--ink-2); font-weight:600; text-align:left;
+  white-space:normal; line-height:1.2; vertical-align:bottom; overflow-wrap:anywhere; }
+[data-theme=figure] .qc-deeper-table th { background:var(--panel); }
+.qc-deeper-table th.qc-deeper-num { text-align:right; }
+.qc-deeper-table th:nth-child(1) { width:33%; }
+.qc-deeper-table th:nth-child(2) { width:19%; }
+.qc-deeper-table th:nth-child(4) { width:18%; }
+.qc-deeper-table td { height:30px; padding:0 4px; border-top:1px solid var(--dp-line); vertical-align:middle; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.qc-deeper-table .qc-deeper-num { text-align:right; }
+.qc-deeper-gene span { display:block; line-height:14px; overflow:hidden; text-overflow:ellipsis; }
+.qc-deeper-tag { display:block; line-height:12px; font-size:10px; color:var(--dp-tag); overflow:hidden; text-overflow:ellipsis; }
+.qc-deeper-tagged td:first-child { box-shadow:inset 3px 0 0 var(--dp-nb); padding-left:8px; }
+.qc-deeper-row-bar { display:flex; height:8px; border-radius:2px; overflow:hidden; background:var(--dp-line); }
+.qc-deeper-row-bar i { display:block; height:100%; }
+.qc-deeper-spacer td { height:auto; padding:0; border:0; }
+.qc-deeper-foot { padding-top:10px; }
+.qc-deeper-foot p { margin:0 0 4px; }
+.qc-deeper-estimate { display:flex; align-items:center; gap:5px; color:var(--ink-2); font-size:var(--dp-fs-s); }
+.qc-deeper-how { border-bottom:0; }
+.qc-deeper-how ol { margin:6px 0 0; padding-left:18px; color:var(--ink-2); font-size:var(--dp-fs-s); }
+.qc-deeper-how li { margin-bottom:4px; padding-left:2px; }
+
+/* Make smaller: a strip that stays live (the header, the number and the bar). */
+.qc-deeper-small .qc-deeper-pinned, .qc-deeper-small .qc-deeper-back, .qc-deeper-small .qc-deeper-step, .qc-deeper-small .qc-deeper-notes,
+.qc-deeper-small .qc-deeper-trend, .qc-deeper-small .qc-deeper-legend, .qc-deeper-small .qc-deeper-scroll,
+.qc-deeper-small .qc-deeper-where-row, .qc-deeper-small .qc-deeper-test-open { display:none!important; }
+.qc-deeper-small .qc-deeper-number { font-size:18px; }
+.qc-deeper-small .qc-deeper-number-label { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.qc-deeper-small .qc-deeper-bar { margin-bottom:12px; }
+
+/* The button in the mixing check's row for the selected cell (qc-panel.js setCell), under its name and above its Mixing
+   line, which never moves it. */
+.qc-cell .qc-deeper-open { display:block; width:100%; margin:6px 0 0; text-align:center; }
+.qc-cell .qc-deeper-open[aria-pressed=true] { background:var(--accent-weak); border-color:var(--ui-accent); }

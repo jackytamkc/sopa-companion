@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+type: software
+title: "SoPA companion"
+abstract: "A companion to sopa for Jupyter notebooks: stain segmentation with Cellpose and live proseg on a SpatialData sample, with a mixing check and a comparison of segmentations; what you keep is added back to the same object."
+authors:
+  - family-names: Tam
+    given-names: Jacky
+version: 0.6.2
+date-released: 2026-11-10
+license: BSD-3-Clause
+repository-code: "https://github.com/jackytamkc/sopa-companion"
+keywords:
+  - spatial transcriptomics
+  - cell segmentation
+  - SpatialData
+  - sopa
+  - proseg
+  - Cellpose

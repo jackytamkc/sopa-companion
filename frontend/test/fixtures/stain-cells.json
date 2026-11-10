@@ -1,0 +1,29 @@
+{
+ "meta": {
+  "set": "resolved",
+  "areas_version": 0,
+  "channels": [
+   "DAPI"
+  ],
+  "default": "DAPI",
+  "dtype": "uint16",
+  "error": null
+ },
+ "area": [
+  5.0,
+  20.0,
+  80.0
+ ],
+ "flags": [
+  0,
+  0,
+  0
+ ],
+ "brightness": {
+  "DAPI": [
+   1.0,
+   null,
+   100.0
+  ]
+ }
+}

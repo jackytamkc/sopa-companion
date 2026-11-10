@@ -1,0 +1,32 @@
+.venv
+var/
+.cache/
+__pycache__/
+.pytest_cache/
+# Built here, never committed. No trailing slash on the cargo targets (native/target, and any other target-*): one may
+# be a symlink to a target shared with other builds, and a "dir/" rule never matches a link. native/proseg is the tree
+# native/build.sh makes from proseg 3.2.0 and proseg-live.patch (the one source); its scratch is native/.cache/.
+/native/target*
+/native/bin/
+/native/testdata/
+/native/proseg/
+# This computer's settings (copy config.example.toml) and local overrides: each computer keeps its own.
+/config.toml
+/config.local.toml
+# What pip install -e leaves in the app's folder.
+*.egg-info/
+/build/
+# Wheels built here (python -m build) and the weekly resolver's output (ci/resolve.sh): never committed, never shipped.
+/dist/
+/ci/resolve/out/
+.codex-tasks/
+.agents/
+.aws/
+.codex/
+verify-lifecycle/
+# Debug dumps that proseg builds before the patch removed them wrote into the folder they ran in.
+*membership_debug.txt
+frontend/test/telemetry-body.json
+node_modules/
+*.pyc
+.fuse_hidden*

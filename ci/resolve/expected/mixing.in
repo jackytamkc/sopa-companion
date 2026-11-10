@@ -1,0 +1,3 @@
+-r base.in
+scvi-tools>=1.5
+scviva-tools>=0.1.7

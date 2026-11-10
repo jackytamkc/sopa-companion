@@ -1,0 +1,314 @@
+{
+  "what": "The calibration on proseg's own count (2026-10-31): each value the code holds, as the measurement's constants file gives it (measured, or kept with its reason there; whole samples not measured yet). tests/test_qc_calibration.py holds the engine and the worker to it, frontend/test/qc-calibration.test.mjs the page's twins.",
+  "made": "2026-10-31",
+  "qc_constants": {
+    "CONSTANTS_ID": "proseg-2026-10-31",
+    "MEASURED": {
+      "region": true,
+      "tiled": true,
+      "whole": false
+    },
+    "KEPT": {
+      "region": [],
+      "tiled": [
+        "glow",
+        "where_words"
+      ],
+      "whole": [
+        "glow",
+        "where_words",
+        "start_band",
+        "min_counts",
+        "like_depth"
+      ]
+    },
+    "TABLE": {
+      "region": {
+        "headline_weight": 0.2,
+        "headline_ref_s": 1.0,
+        "shown_margin": 0.3,
+        "sampler_k": 0.6,
+        "matched_fixed": 1.0,
+        "matched_model": 2.3,
+        "local_min_judged": 300,
+        "local_min_paired": 400,
+        "trial": {
+          "history_iterations": 50,
+          "settle_after_burnin_iterations": 20,
+          "min_history_results": 10,
+          "mult": 2.0,
+          "floor_per100": 1.0,
+          "min_results": 5,
+          "min_iterations": 20,
+          "horizon_iterations": 300
+        },
+        "areas": {
+          "bin_um": 50.0,
+          "window": 3,
+          "alpha": 0.5,
+          "ref_dt": 1.0,
+          "enter_results": 2,
+          "stay_results": 3,
+          "enter_s": 2.0,
+          "stay_s": 10.0,
+          "enter_min_m": 5.0,
+          "enter_mult": 1.5,
+          "enter_add": 0.04,
+          "wilson_z": 1.645,
+          "top_frac": 0.1,
+          "stay_mult": 1.25,
+          "stay_add": 0.02,
+          "cap_swap_ratio": 2.0,
+          "listed": 3,
+          "letter_jaccard": 0.2,
+          "letter_rest_s": 30.0,
+          "rose_z": 2.0,
+          "rose_points": 0.03,
+          "tissue_min_j": 1.0,
+          "enter_min_j": 30.0,
+          "stay_min_j": 20.0,
+          "cap": 4,
+          "min_area_j": 120.0
+        }
+      },
+      "tiled": {
+        "headline_weight": 0.1,
+        "headline_ref_s": 1.0,
+        "shown_margin": 0.3,
+        "sampler_k": 0.6,
+        "matched_fixed": 1.0,
+        "matched_model": 1.5,
+        "local_min_judged": 300,
+        "local_min_paired": 400,
+        "trial": {
+          "history_iterations": 50,
+          "settle_after_burnin_iterations": 20,
+          "min_history_results": 10,
+          "mult": 2.0,
+          "floor_per100": 1.0,
+          "min_results": 5,
+          "min_iterations": 20,
+          "horizon_iterations": 300
+        },
+        "areas": {
+          "bin_um": 100.0,
+          "window": 3,
+          "alpha": 0.5,
+          "ref_dt": 1.0,
+          "enter_results": 2,
+          "stay_results": 3,
+          "enter_s": 2.0,
+          "stay_s": 10.0,
+          "enter_min_m": 5.0,
+          "enter_mult": 1.5,
+          "enter_add": 0.04,
+          "wilson_z": 1.645,
+          "top_frac": 0.1,
+          "stay_mult": 1.25,
+          "stay_add": 0.02,
+          "cap_swap_ratio": 2.0,
+          "listed": 3,
+          "letter_jaccard": 0.2,
+          "letter_rest_s": 30.0,
+          "rose_z": 2.0,
+          "rose_points": 0.03,
+          "tissue_min_j": 1.0,
+          "enter_min_j": 40.0,
+          "stay_min_j": 30.0,
+          "cap": 8,
+          "min_area_j": 300.0
+        }
+      },
+      "whole": {
+        "headline_weight": 0.5,
+        "headline_ref_s": 1.0,
+        "shown_margin": 0.3,
+        "sampler_k": 0.6,
+        "matched_fixed": 0.3,
+        "matched_model": 0.6,
+        "local_min_judged": 300,
+        "local_min_paired": 400,
+        "trial": {
+          "history_iterations": 50,
+          "settle_after_burnin_iterations": 20,
+          "min_history_results": 10,
+          "mult": 2.0,
+          "floor_per100": 1.0,
+          "min_results": 5,
+          "min_iterations": 20,
+          "horizon_iterations": 300
+        },
+        "areas": {
+          "bin_um": 100.0,
+          "window": 3,
+          "alpha": 0.5,
+          "ref_dt": 1.0,
+          "enter_results": 2,
+          "stay_results": 3,
+          "enter_s": 2.0,
+          "stay_s": 10.0,
+          "enter_min_m": 5.0,
+          "enter_mult": 1.5,
+          "enter_add": 0.04,
+          "wilson_z": 1.645,
+          "top_frac": 0.1,
+          "stay_mult": 1.25,
+          "stay_add": 0.02,
+          "cap_swap_ratio": 2.0,
+          "listed": 3,
+          "letter_jaccard": 0.2,
+          "letter_rest_s": 30.0,
+          "rose_z": 2.0,
+          "rose_points": 0.03,
+          "tissue_min_j": 1.0,
+          "enter_min_j": 40.0,
+          "stay_min_j": 30.0,
+          "cap": 8,
+          "min_area_j": 300.0
+        }
+      }
+    }
+  },
+  "worker": {
+    "DEEP_START_BAND": 5.0,
+    "DEEP_START_KEEP": 0.5,
+    "DEFAULTS.min_counts": 10,
+    "LIKE_DEPTH": 100
+  },
+  "pink_dots": {
+    "GLOW_MIN": 0.2,
+    "LIKELY_MIN": 0.5,
+    "LIKELY_W": 0.5
+  },
+  "where_words": {
+    "FEW_IN_CELL": 4,
+    "EDGE_NEAR": 2.5,
+    "EDGE_SHARE": 0.3333333333333333,
+    "EDGE_RATIO": 2.0,
+    "LAYER_RATIO": 0.5
+  },
+  "rule_R3": {
+    "CONFIDENCE": "likely",
+    "sized": "likelySize"
+  },
+  "settings_test": {
+    "CONSTANTS_ID": "proseg-2026-10-31",
+    "OUTLINE_IDS": [
+      "phase1a-2026-10-29"
+    ],
+    "DROP": 0.25,
+    "CONSTANTS": {
+      "paired": {
+        "runs_per_side": 3,
+        "rule": "excess",
+        "k": 160,
+        "shrink_share": 0.3333333333333333,
+        "area_min_um": 300.0,
+        "as_is_max_um": 500.0,
+        "situations": {
+          "as_is": {
+            "offered": true,
+            "refusal": null,
+            "gate": 0.5,
+            "tau": {
+              "excess": 0.08938564995169271,
+              "suspects": 0.08527235239755926
+            },
+            "rates": {
+              "fp_mean": 0.007883249723108996,
+              "fp_worst": 0.018585604032131046,
+              "areas": 2,
+              "power": 0.9219949182357158,
+              "drop": 0.25,
+              "shrink_fire": 0.01849957651964297
+            },
+            "measured": false,
+            "short_rates": null
+          },
+          "square": {
+            "offered": true,
+            "refusal": null,
+            "gate": 0.5,
+            "tau": {
+              "excess": 0.08938564995169271,
+              "suspects": 0.08527235239755926
+            },
+            "rates": {
+              "fp_mean": 0.012977015334507574,
+              "fp_worst": 0.032999999999999995,
+              "areas": 3,
+              "power": 0.7450488713027039,
+              "drop": 0.25,
+              "shrink_fire": 0.010664357070356694
+            },
+            "measured": false,
+            "short_rates": null
+          }
+        }
+      },
+      "cells": {
+        "runs_per_side": 4,
+        "rule": "excess",
+        "k": 160,
+        "shrink_share": 0.3333333333333333,
+        "area_min_um": 300.0,
+        "as_is_max_um": 500.0,
+        "situations": {
+          "as_is": {
+            "offered": true,
+            "refusal": null,
+            "gate": 0.5,
+            "tau": {
+              "excess": 0.0655782303402374,
+              "suspects": 0.06116140846464757
+            },
+            "rates": {
+              "fp_mean": 0.005445159465384341,
+              "fp_worst": 0.014412683161181838,
+              "areas": 2,
+              "power": 0.9761685877943569,
+              "drop": 0.25,
+              "shrink_fire": 0.10115267661410085
+            },
+            "measured": true,
+            "short_rates": {
+              "fp_mean": 0.028426395939086288,
+              "fp_worst": 0.037914691943127965,
+              "power": 0.21962774957698816,
+              "drop": 0.25,
+              "shrink_fire": 0.042064297800338414,
+              "tests": 8,
+              "areas": 4
+            }
+          },
+          "square": {
+            "offered": true,
+            "refusal": null,
+            "gate": 0.5,
+            "tau": {
+              "excess": 0.0655782303402374,
+              "suspects": 0.06116140846464757
+            },
+            "rates": {
+              "fp_mean": 0.011264073139657632,
+              "fp_worst": 0.013274336283185839,
+              "areas": 3,
+              "power": 0.8831359560583003,
+              "drop": 0.25,
+              "shrink_fire": 0.02605210981315147
+            },
+            "measured": true,
+            "short_rates": null
+          }
+        }
+      }
+    },
+    "MEASURED": {
+      "likely_w": 0.5,
+      "w_bands": [
+        0.25,
+        0.75
+      ]
+    }
+  }
+}

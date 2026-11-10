@@ -1,0 +1,341 @@
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--stage);color:var(--ink-1);font:13px/1.45 var(--font-ui);overflow:hidden}
+button,input,select{font:inherit;color:inherit}
+button,select{border:1px solid var(--hair);background:var(--raised);border-radius:var(--r-2);min-height:var(--control-h);padding:4px 10px;cursor:pointer}
+button:hover{filter:brightness(1.18)}
+button:disabled{opacity:.4;cursor:default;filter:none}
+button.primary{background:var(--accent-fill);border-color:#3d80b8;color:#fff;font-weight:600}
+button.primary:hover{background:var(--accent-fill-hover);filter:none}
+button.danger{border-color:#6b3a3a}
+button.big{min-height:38px;font-size:var(--fs-4);width:100%}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+input[type=range]{accent-color:var(--ui-accent);width:100%}
+input[type=checkbox]{accent-color:var(--ui-accent);width:15px;height:15px;margin:0}
+h1{font-size:var(--fs-6);font-weight:600;letter-spacing:-.5px;margin:0 0 10px}
+h2{font-size:var(--fs-5);font-weight:600;margin:0 0 6px}
+h3{font-size:var(--fs-1);font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3);margin:0 0 10px}
+p{margin:0 0 10px}
+.muted{color:var(--ink-2)}
+.small{font-size:var(--fs-1)}
+.error{color:var(--error);font-size:var(--fs-2)}
+[hidden]{display:none!important}
+
+.shell{height:100%;display:grid;grid-template-columns:minmax(0,1fr) 296px;grid-template-rows:46px minmax(0,1fr) auto}
+.shell.setup{grid-template-columns:minmax(0,1fr)}
+.shell.setup .side{display:none}
+.app-header{grid-column:1/-1;display:flex;align-items:center;gap:14px;padding:0 14px;background:var(--panel);border-bottom:1px solid var(--hair);z-index:5}
+.brand{font-size:var(--fs-5);font-weight:500;letter-spacing:-.4px;display:flex;align-items:center;gap:9px;white-space:nowrap;border:0;background:none;padding:0;min-height:0}
+.brand b{font-weight:700;color:var(--ui-accent)}
+.brand-mark{width:18px;height:18px;border-radius:4px;background:conic-gradient(#e76f51 0 25%,#2a9d8f 0 50%,#7cc4ff 0 75%,#e9c46a 0);box-shadow:0 0 0 2px #0e1116 inset}
+#sample-name{max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink-2)}
+.app-header>button{flex-shrink:0}
+.spacer{flex:1}
+.connection{width:9px;height:9px;border-radius:50%;background:var(--warn);box-shadow:0 0 0 3px rgba(255,180,84,.15)}
+.connection.ok{background:var(--good-ink);box-shadow:0 0 0 3px rgba(123,226,154,.15)}
+
+/* The floating cards over the stage (Go deeper's window, the test corner, the run HUD, the mixing
+   chip) share one set of tokens: 12 px radius, a hairline border, a deep translucent surface, one soft shadow, 14 px
+   padding. Each card's own stylesheet keeps these values as its fallbacks. */
+:root{--card-radius:12px;--card-border:rgba(255,255,255,.09);--card-surface:rgba(17,21,28,.94);--card-shadow:0 18px 48px rgba(0,0,0,.55);--card-pad:14px}
+[data-theme=figure]{--card-border:var(--hair);--card-surface:var(--panel);--card-shadow:0 10px 30px rgba(0,0,0,.18)}
+
+.stage-wrap{grid-row:2;grid-column:1;position:relative;overflow:hidden;background:radial-gradient(circle at 50% 40%,#121822,#0b0e13 70%)}
+.stage{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+.stage.overlay{pointer-events:none}
+.stage-wrap.picking .stage{cursor:crosshair}
+.stage-wrap.grab .stage{cursor:grab}
+.stage-wrap.grabbing .stage{cursor:grabbing}
+
+.hud{position:absolute;left:12px;top:12px;pointer-events:none;padding:8px var(--card-pad) 10px;border:1px solid var(--card-border);border-radius:var(--card-radius);background:var(--card-surface);box-shadow:var(--card-shadow)}
+.hud-phase{display:flex;align-items:center;gap:8px;font-size:var(--fs-2);font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-2)}
+.hud-phase i{width:9px;height:9px;border-radius:50%;background:var(--ink-3)}
+/* Nothing on the page animates by itself: every repaint is a frame that a remote desktop reads back,
+   composites and encodes in software. Live indicators are solid dots with a static ring, busy indicators are static
+   rings, and the page changes only when its content does (one paint per snapshot, see paint-batch.mjs). */
+.hud-phase i.pulse{box-shadow:0 0 0 3px rgba(124,196,255,.35)}
+.hud-iter{font:600 44px/1.05 var(--font-ui);letter-spacing:-1.5px;font-variant-numeric:tabular-nums;color:#f2f5f9}
+.hud-iter small{font-size:var(--fs-4);font-weight:500;color:var(--ink-2);letter-spacing:0;margin-left:6px}
+.hud-sub{font-size:var(--fs-2);color:#c4ccd8;font-variant-numeric:tabular-nums}
+.hud-state{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);padding:14px 22px;border-radius:var(--r-3);background:#0e1116e6;border:1px solid var(--hair);font-size:var(--fs-4);text-align:center;box-shadow:0 20px 60px #0009}
+.hud-state .spinner{display:inline-block;width:14px;height:14px;margin-right:10px;vertical-align:-2px;border:2px solid var(--hair);border-top-color:var(--ui-accent);border-right-color:var(--ui-accent);border-radius:50%}
+
+.tooltip{position:absolute;z-index:6;pointer-events:none;background:#1c222bf2;border:1px solid #4a5462;padding:7px 10px;border-radius:var(--r-2);font-size:var(--fs-2);line-height:1.45;box-shadow:0 6px 20px #0009;white-space:nowrap;font-variant-numeric:tabular-nums}
+.tooltip b{font-weight:600}
+.tooltip .sw{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px;vertical-align:0}
+.scale{position:absolute;right:16px;bottom:14px;display:flex;flex-direction:column;align-items:flex-end;gap:3px;font-size:var(--fs-1);color:#dce4eb;text-shadow:0 1px 2px #000;pointer-events:none}
+.scale i{display:block;height:3px;background:#dce4eb;border-radius:1px;box-shadow:0 1px 2px #000}
+.icon-button{min-width:30px;padding:0 6px;text-align:center}
+.fit{position:absolute;right:12px;top:12px;background:#151a21dd}
+
+.card{background:#151a21f2;border:1px solid #39424f;border-radius:var(--r-3);box-shadow:0 22px 70px #000a}
+.picker{position:absolute;left:16px;bottom:16px;width:320px;padding:16px 18px;z-index:4}
+.picker-size{display:flex;flex-direction:column;gap:1px;margin:2px 0 12px;font:600 var(--fs-5) var(--font-ui);font-variant-numeric:tabular-nums}
+.picker-size .muted{font:400 var(--fs-2) var(--font-ui)}
+.picker .segmented{margin-bottom:12px}
+.empty{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(640px,calc(100% - 48px));max-height:calc(100% - 48px);overflow:auto;text-align:center}
+
+.segmented{display:flex;border:1px solid var(--hair);border-radius:var(--r-2);overflow:hidden;background:var(--stage)}
+.segmented button{flex:1;border:0;border-radius:0;background:none;color:var(--ink-2);text-align:center;min-height:28px;padding:3px 8px}
+.segmented button+button{border-left:1px solid var(--hair)}
+.segmented button[aria-pressed=true]{background:#20374c;color:var(--ink-1);box-shadow:inset 0 -2px 0 var(--ui-accent)}
+.segmented.small button{min-height:24px;font-size:var(--fs-2);padding:1px 8px}
+
+.side{grid-row:2;grid-column:2;background:var(--panel);border-left:1px solid var(--hair);overflow:auto;min-height:0}
+.panel{padding:16px;border-bottom:1px solid var(--hair)}
+.row{display:flex;align-items:center;gap:10px;margin-top:12px;color:var(--ink-2);font-size:var(--fs-2)}
+.row.slider{display:grid;grid-template-columns:44px 1fr}
+.channels{display:flex;flex-direction:column;gap:6px;margin-top:12px}
+.channel{display:flex;align-items:center;gap:8px;font-size:var(--fs-2);color:var(--ink-2);cursor:pointer}
+.channel i{width:12px;height:12px;border-radius:3px;flex:none;box-shadow:0 0 0 1px #0008}
+.channel.off{opacity:.45}
+.channel span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.layers{margin-top:14px;display:grid;gap:6px;font-size:var(--fs-2)}
+.facts{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 14px;margin:0;font-size:var(--fs-2)}
+.facts dt{color:var(--ink-2)}
+.facts dd{margin:0;text-align:right;font-variant-numeric:tabular-nums;color:var(--ink-1);min-width:0;overflow-wrap:anywhere}
+.cell-card{margin-top:14px;padding:10px 12px;border:1px solid var(--hair);border-radius:var(--r-2);background:var(--stage);font-size:var(--fs-2)}
+.cell-card header{display:flex;align-items:center;gap:8px;font-weight:600;margin-bottom:6px}
+.cell-card header i{width:12px;height:12px;border-radius:3px}
+.cell-card canvas{width:100%;height:56px;display:block;margin-top:6px}
+
+.dock{grid-column:1/-1;grid-row:3;background:var(--panel);border-top:1px solid var(--hair);padding:8px 14px 10px}
+.controls{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-bottom:6px}
+.group{display:flex;align-items:center;gap:6px}
+.group .segmented{min-width:150px}
+.live{display:flex;align-items:center;gap:7px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;font-size:var(--fs-1)}
+.live i{width:8px;height:8px;border-radius:50%;background:var(--ink-3)}
+.live[aria-pressed=true]{border-color:#7a2a2a;background:#2a1517;color:#ffb3b3}
+.live[aria-pressed=true] i{background:#ff5f5f;box-shadow:0 0 0 2px rgba(255,95,95,.3)}
+.live.ended,.live.ended[aria-pressed=true]{border-color:var(--hair);background:var(--raised);color:var(--ink-1)}
+.live.ended i{background:var(--ink-3)!important;box-shadow:none!important}
+#phase-help{margin-top:12px}
+.status{margin-left:auto;color:var(--ink-2);font-size:var(--fs-2);font-variant-numeric:tabular-nums;white-space:nowrap}
+.timeline{display:block;width:100%;height:116px;cursor:pointer}
+
+@media (max-width:1100px){.shell{grid-template-columns:minmax(0,1fr) 250px}#sample-name{max-width:180px}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+.view-switch{margin-bottom:12px}
+#display-panel .modes{margin-top:12px}
+.row.stretch{display:grid;grid-template-columns:56px minmax(0,1fr) 32px}
+.row.stretch output{text-align:right;font-variant-numeric:tabular-nums}
+
+.picker{max-height:calc(100% - 32px);overflow:auto;max-width:calc(100% - 32px)}
+.advanced{margin:0 0 12px;font-size:var(--fs-2)}
+summary{cursor:pointer;color:var(--ink-2);padding:5px 0}
+.options-scroll{max-height:30vh;overflow:auto;overscroll-behavior:contain;padding-right:6px}
+.options-scroll h3{margin:14px 0 8px}
+.option-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:4px 6px;margin-bottom:12px;align-items:start}
+.option-row label{display:grid;gap:4px}
+.option-row small{grid-column:1/-1;font-size:var(--fs-1)}
+.option-row input:not([type=checkbox]),.option-row select,.knob input:not([type=checkbox]){width:100%;min-width:0;background:var(--stage);border:1px solid var(--hair);border-radius:var(--r-2);padding:4px 6px}
+.text-button{background:none;border:0;color:var(--ui-accent);padding:2px 4px;align-self:start;font-size:var(--fs-1)}
+.knob{display:grid;grid-template-columns:minmax(0,1fr) 90px;gap:8px;align-items:center;margin:8px 0;font-size:var(--fs-2)}
+.knob-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:0 6px;align-items:start}
+.knob-row>.option-help-toggle{margin-top:8px}
+.knob-status{grid-column:1/-1;color:var(--ink-2);font-size:var(--fs-2);line-height:1.5}
+.knob-status:empty{display:none}
+.option-help-toggle{width:24px;height:24px;min-height:24px;padding:0;border:1px solid var(--hair);border-radius:50%;background:var(--panel);color:var(--ink-2);font-size:var(--fs-3);line-height:1}
+.option-help-toggle:hover,.option-help-toggle[aria-expanded=true]{color:var(--ink-1);background:var(--raised)}
+.option-help{grid-column:1/-1;padding:12px;margin:4px 0 12px;background:var(--raised);border:1px solid var(--hair);border-radius:var(--r-2);font-size:var(--fs-3);line-height:1.55;overflow-wrap:anywhere}
+.option-help dl{display:block;margin:0}
+.option-help dt{font-weight:600;color:var(--ink-1);margin-top:12px}
+.option-help dt:first-child{margin-top:0}
+.option-help dd{margin:3px 0 0;color:var(--ink-2)}
+.advanced>summary{display:flex;align-items:center;gap:6px;list-style:none}
+.advanced>summary::-webkit-details-marker{display:none}
+.advanced>summary::before{content:'▸';color:var(--ink-2)}
+.advanced[open]>summary::before{content:'▾'}
+.advanced>summary>span{font-size:var(--fs-1);white-space:nowrap}
+.advanced>summary>.guide-toggle{margin:0 0 0 auto;padding:3px 4px;min-height:24px;font-size:10px;white-space:nowrap}
+.guide-toggle{display:block;max-width:100%;margin:8px 0;padding:6px 8px;text-align:left;background:var(--panel);border:1px solid var(--hair);border-radius:var(--r-2);color:var(--ui-accent);font-size:var(--fs-3);font-weight:400;letter-spacing:normal;text-transform:none;white-space:normal}
+.knob-guide{padding:12px;margin:8px 0 14px;border:1px solid var(--hair);border-radius:var(--r-2);background:var(--panel);font-size:var(--fs-3);line-height:1.55;overflow-wrap:anywhere}
+.guide-symptoms{display:grid;gap:6px;font-weight:600}
+.guide-symptoms select{width:100%;min-width:0;padding:6px;background:var(--stage);border:1px solid var(--hair);border-radius:var(--r-2);font-size:var(--fs-3);font-weight:400}
+.knob-guide p{margin:8px 0;color:var(--ink-2)}
+.guide-symptom-title{font-size:var(--fs-3);font-weight:600;margin:14px 0 8px}
+.guide-action{margin-top:14px;padding-top:12px;border-top:1px solid var(--hair)}
+.guide-action strong{font-weight:600;color:var(--ink-1)}
+.guide-action .guide-timing,.guide-action .guide-status{color:var(--ink-1)}
+.guide-status:empty{display:none}
+.guide-buttons{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.guide-try,.guide-undo{padding:5px 10px;border:1px solid var(--hair);border-radius:var(--r-2);background:var(--raised);font-size:var(--fs-3)}
+.guide-try{color:var(--ui-accent)}
+.guide-undo{color:var(--ink-2)}
+.overflow{position:relative}.overflow summary{list-style:none;padding:5px 8px}.overflow button{position:absolute;bottom:100%;left:0;white-space:nowrap;z-index:8;background:var(--panel)}
+.results{border-top:1px solid var(--hair);padding-top:12px;margin-top:12px}.results p{margin-top:10px}
+/* Runs from older versions (older-runs.mjs): the title, the lead and the buttons stay in view with dozens of rows, which
+   scroll in a box of their own (as the open dialog's list does). */
+.older-popup{display:flex;flex-direction:column}
+.older-popup:not([open]){display:none}
+.older-notice{color:var(--warn);overflow-wrap:anywhere}
+.older-runs{list-style:none;margin:0;padding:0 4px 0 0;max-height:min(420px,46vh);overflow:auto;border-top:1px solid var(--hair);border-bottom:1px solid var(--hair)}
+.older-row{display:grid;gap:4px;padding:10px 0;border-bottom:1px solid var(--hair)}
+.older-row:last-child{border-bottom:0}
+.older-row p{margin:0;overflow-wrap:anywhere}
+.older-line{cursor:help}
+.older-actions{display:flex;gap:8px}
+.older-row.done .older-status{color:var(--good-ink)}
+.older-popup .modal-actions .spacer{flex:1}
+/* A notebook's session on the first screen: its SpatialData loading (the static spinner, its words and, once its size is
+   known, a bar of what is prepared) or why it could not be opened; a card pressed meanwhile waits the same way. */
+.session-status{margin:8px 0 0;color:var(--ink-2);overflow-wrap:anywhere}
+.session-status[data-state=failed]{color:var(--error)}
+.session-status .spinner{margin-right:9px;vertical-align:-2px}
+.session-progress{display:block;width:min(320px,100%);height:6px;margin:10px auto 0;border:0;border-radius:3px;overflow:hidden;appearance:none;background:var(--hair);accent-color:var(--ui-accent)}
+.session-progress::-webkit-progress-bar{background:var(--hair)}
+.session-progress::-webkit-progress-value{background:var(--ui-accent)}
+.session-progress::-moz-progress-bar{background:var(--ui-accent)}
+.tool-wait{display:flex;align-items:center;gap:8px}
+.tool-card[aria-busy=true]{opacity:1;border-color:var(--ui-accent)}
+.leave-lead{margin:0 0 4px;color:var(--ink-2)}
+.notice{position:fixed;bottom:16px;left:16px;max-width:min(440px,90vw);padding:10px 14px;background:var(--raised);border:1px solid var(--hair);border-radius:var(--r-2);z-index:30;pointer-events:none}
+
+.panel > summary{font-size:var(--fs-1);font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3);padding:0;cursor:pointer}
+.panel[open] > summary{margin-bottom:10px}
+.panel > summary:focus-visible{outline:2px solid var(--focus);outline-offset:4px}
+.row.stretch{grid-template-columns:56px minmax(0,1fr) auto}
+.results.highlight{background:#20374c;box-shadow:0 0 0 6px #20374c}
+.hud{z-index:2;background:rgba(11,14,19,.88)}
+
+.timeline-readout{position:fixed;white-space:pre-wrap;max-width:calc(100vw - 8px);overflow-wrap:anywhere;z-index:25}
+.layer-list{margin-top:12px;border:1px solid var(--hair);border-radius:4px;overflow:hidden}
+.layer-row{display:flex;min-width:0}.layer-row button{border:0;border-radius:0;min-height:29px;background:transparent}
+.layer-eye{width:30px;padding:0;color:var(--ink-2)}.layer-name{flex:1;display:flex;align-items:center;gap:8px;text-align:left;overflow:hidden;white-space:nowrap;font-size:var(--fs-2)}
+.layer-name[aria-pressed=true]{background:#20374c}.layer-name i{width:10px;height:10px;border-radius:2px;flex:none}
+.layer-controls{margin-top:12px}.layer-field{display:grid;grid-template-columns:76px minmax(0,1fr);align-items:center;gap:8px;margin:9px 0;font-size:var(--fs-2);color:var(--ink-2)}
+.layer-field select{width:100%;padding:3px}.contrast{position:relative;height:62px;margin-top:8px}.contrast canvas{width:100%;height:55px;opacity:.65}
+.contrast input{position:absolute;inset:0;margin:0;pointer-events:none;appearance:none;background:transparent;height:62px}.contrast input::-webkit-slider-thumb{appearance:none;width:10px;height:60px;background:#bcd9ed99;border:1px solid #d9efff;border-radius:2px;pointer-events:auto;cursor:ew-resize}.contrast input::-moz-range-thumb{width:8px;height:58px;background:#bcd9ed99;pointer-events:auto;cursor:ew-resize}
+/* A key that would leave the end of proseg's standard run makes its note stand out for a moment (static: main.js
+   flashNote adds and removes the class; no transition). */
+.prior-hint.attention{border-color:var(--ui-accent);box-shadow:0 0 0 2px var(--ui-accent)}
+.contrast-values{display:flex;gap:5px}.contrast-values input{min-width:0;width:35%;background:var(--stage);border:1px solid var(--hair);padding:4px}.contrast-values button{margin-left:auto}.prior-hint{position:absolute;bottom:18px;left:18px;max-width:480px;padding:12px;background:#151a21ee;border:1px solid var(--hair);border-radius:5px;z-index:3}
+/* Layers > Load Other Mask (layer-panel.js fillSegs): a small heading, a row per layer (its name over
+   its key, or how its load goes), Add a mask… and the sample's others under it, aligned with the names. */
+.seg-group{border-top:1px solid var(--hair)}
+.seg-head{padding:7px 10px 2px;font-size:var(--fs-1);font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
+.seg-row .layer-name{min-height:38px}.seg-row span.layer-name{padding:4px 10px}
+.seg-label{display:grid;min-width:0;line-height:1.25}
+.seg-label>*{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.seg-label small,.seg-add-list small{font-size:var(--fs-1);color:var(--ink-3)}.seg-label .seg-state{color:var(--ink-2)}
+.layer-row .seg-retry,.seg-add-list .seg-retry{flex:none;min-height:0;padding:2px 10px;font-size:var(--fs-1);color:var(--ui-accent)}
+.layer-row .seg-add{padding-left:40px;color:var(--ui-accent)}
+.seg-add-list{display:grid;padding:0 0 6px}
+.seg-add-list .seg-pick{display:grid;justify-items:start;gap:1px;min-height:0;padding:5px 10px 5px 40px;border:0;border-radius:0;background:transparent;text-align:left;font-size:var(--fs-2)}
+.seg-add-list .seg-retry{justify-self:start;margin-left:30px;border:0;background:transparent}
+.seg-add-list p,.seg-note{display:block;margin:0;padding:4px 10px 6px 40px;font-size:var(--fs-1);color:var(--ink-2)}
+.seg-remove{margin-top:2px}
+
+.view-split{grid-row:2;grid-column:1;display:flex;min-width:0;min-height:0;overflow:hidden}
+.view-split>.stage-wrap{flex:1;min-width:0;min-height:0}
+.umap-divider{flex:0 0 6px;background:var(--hair);cursor:col-resize;touch-action:none}
+.umap-divider:hover,.umap-divider:focus{background:var(--focus)}
+.umap-pane{position:relative;flex:none;min-width:0;background:#0b0e13;display:flex;flex-direction:column}
+.umap-pane[hidden],.umap-divider[hidden]{display:none}
+.umap-head{display:flex;justify-content:space-between;align-items:center;padding:6px;font-size:var(--fs-1);gap:5px;flex-wrap:wrap}
+.umap-head button{font-size:var(--fs-1);padding:2px 6px}
+.umap-pane canvas{width:100%;flex:1;min-height:0;display:block;touch-action:none}
+.umap-pane canvas[hidden]{display:none}
+.umap-tip{position:absolute;bottom:10px;left:8px;right:8px;pointer-events:none;font-size:var(--fs-1);background:#0b0e13bb}
+.umap-settings{margin:0;padding:0 6px 6px;font-size:var(--fs-1);flex:none}
+.umap-settings[open]{max-height:40%;overflow:auto}
+.umap-setting{display:grid;grid-template-columns:minmax(0,1fr) 72px;gap:2px 6px;align-items:center;margin:3px 0}
+.umap-setting input{width:100%;min-width:0;background:var(--stage);border:1px solid var(--hair);border-radius:var(--r-2);padding:2px 4px;color:inherit}
+.umap-setting>.field-note{grid-column:1/-1;margin:0}
+.umap-settings-buttons{display:flex;gap:6px;margin-top:6px}
+.umap-settings-buttons button{font-size:var(--fs-1);padding:2px 8px}
+.umap-settings .missing-note,.umap-settings-status{font-size:var(--fs-1);margin:4px 0 0;overflow-wrap:anywhere}
+.analysis-controls{padding:8px 0;border-bottom:1px solid var(--hair)}
+.analysis-controls .small{padding-top:4px;overflow-wrap:anywhere}
+
+.picker{width:350px}
+.picker h2{font-size:var(--fs-4);margin:12px 0 6px}
+#stain-picker>label:not(.toggle),.picker>label:has(#run-kind){display:grid;gap:4px;margin:8px 0}
+#stain-picker select,#stain-picker input[type=number],#run-kind{width:100%;min-width:0}
+/* The model list while it loads (main.js showModelsLoading): the static spinner beside it, in the list's own row. */
+#stain-picker>label.model-row:has(>#stain-model-loading:not([hidden])){grid-template-columns:minmax(0,1fr) auto;column-gap:8px;align-items:center}
+#stain-picker>label.model-row:has(>#stain-model-loading:not([hidden]))>span:first-child{grid-column:1/-1}
+#stain-model-loading{display:inline-block;width:14px;height:14px;border:2px solid var(--hair);border-top-color:var(--ui-accent);border-right-color:var(--ui-accent);border-radius:50%}
+.picker h2 small{font-size:var(--fs-2);font-weight:400;margin-left:5px}
+.picker-sample{display:grid;gap:2px;padding-bottom:8px;border-bottom:1px solid var(--hair);overflow-wrap:anywhere}
+/* What the open found about the sample (sample-notes.mjs): a short line each, its ⓘ (as the mixing check's) holding the
+   rest as a tooltip. */
+.picker-notes{display:grid;gap:3px;margin-top:4px}
+.picker-note{display:flex;align-items:flex-start;gap:5px;margin:0;font-size:var(--fs-2);color:var(--warn);line-height:1.4}
+.note-info{display:inline-flex;flex:none;width:14px;height:14px;margin-top:1px;color:var(--ink-3);cursor:help}
+.note-info:hover,.note-info:focus-visible{color:var(--ink-1)}
+.note-info:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.note-info svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+/* One prior per row, at the picker's full width: a layer's whole name shows (xenium_nucleus_boundaries was cut under
+   the arrow); a longer one ends in an ellipsis and its title holds it whole (main.js). */
+.prior-selects{display:grid;grid-template-columns:1fr;gap:6px;margin-bottom:6px}
+.prior-selects label{display:grid;gap:3px;font-size:var(--fs-2);color:var(--ink-2);min-width:0}
+.prior-selects select{width:100%;min-width:0;color:var(--ink-1);padding:4px 24px 4px 6px;text-overflow:ellipsis;white-space:nowrap;overflow:hidden}
+.picker .row{margin:6px 0}
+#prior-preview-note{margin:4px 0;overflow-wrap:anywhere}
+#prior-preview-note:empty,#picker-hint:empty{display:none}
+#picker-mode{line-height:1.45;margin-top:4px}
+.recent{margin-top:28px;text-align:left}
+.recent h2{font-size:var(--fs-3);color:var(--ink-2)}
+.recent-item{display:flex;gap:6px;margin:6px 0;border:1px solid var(--hair);border-radius:var(--r-2);overflow:hidden}
+.recent-open{flex:1;min-width:0;display:grid;gap:3px;text-align:left;border:0;background:var(--panel);padding:10px}
+.recent-open small{color:var(--ink-2);overflow-wrap:anywhere}
+.recent-forget{border:0;background:none;align-self:center;color:var(--ink-3);padding:4px 10px}
+.modal{color:var(--ink-1);background:var(--panel);border:1px solid var(--hair);border-radius:var(--r-3);box-shadow:0 24px 80px #000a;width:min(600px,calc(100vw - 32px));max-height:calc(100vh - 32px);padding:22px}
+.modal::backdrop{background:#080b10d9}
+.modal h2{margin-bottom:16px;overflow-wrap:anywhere}
+.modal input[type=text]{background:var(--stage);border:1px solid var(--hair);border-radius:var(--r-2);padding:7px 9px;width:100%;min-width:0}
+.modal-field{display:grid;gap:5px;margin-bottom:14px}
+.modal-field .error:empty{display:none}
+.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+.modal-progress{display:flex;align-items:center;gap:9px;margin:12px 0;color:var(--ink-2);overflow-wrap:anywhere}
+.modal .spinner,.save-progress .spinner,.session-status .spinner,.tool-wait .spinner{display:inline-block;flex:none;width:14px;height:14px;border:2px solid var(--hair);border-top-color:var(--ui-accent);border-right-color:var(--ui-accent);border-radius:50%}
+.modal .error{overflow-wrap:anywhere}
+.browse-path{display:flex;align-items:center;gap:8px;margin:10px 0}
+.browse-shortcuts{display:flex;gap:6px;flex-wrap:wrap}
+.browse-shortcuts button{border-radius:20px;font-size:var(--fs-2);min-height:26px}
+.browse-list{height:min(340px,42vh);overflow:auto;border:1px solid var(--hair);border-radius:var(--r-2);background:var(--stage);padding:4px}
+.browse-entry{display:flex;align-items:center;gap:8px;width:100%;text-align:left;background:transparent;border:1px solid transparent;min-height:36px}
+.browse-entry[aria-selected=true]{background:var(--accent-weak);border-color:var(--ui-accent)}
+.browse-entry span:first-child{flex:1;overflow-wrap:anywhere;min-width:0}
+.browse-list>.muted{padding:12px}
+.browse-list[aria-busy=true]{opacity:.5;pointer-events:none}
+.save-warning{color:var(--warn);font-size:var(--fs-2);overflow-wrap:anywhere}
+.save-progress{display:flex;align-items:center;gap:8px;margin:10px 0;color:var(--ink-2)}
+.save-sample{display:grid;gap:6px;margin-bottom:12px;overflow-wrap:anywhere}
+.save-sample button{justify-self:start}
+.tiled-hint{position:absolute;top:118px;left:12px;max-width:calc(100% - 70px);margin:0;padding:5px 9px;background:#0b0e13dd;border-radius:4px;pointer-events:none;z-index:2}
+
+/* The app shell: the header names the tool after the brand (a press on the brand goes home), the
+   first screen offers the two tools as cards, then the chosen one's Open sample… and Recent; the close popup is a modal
+   dialog (its backdrop dims the page). Static, like the rest of the page. */
+.tool-name{font-weight:600;color:var(--ink-2);white-space:nowrap}
+.tool-name::before{content:'›';margin-right:12px;color:var(--ink-3)}
+.tool-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:22px}
+.tool-card{display:grid;gap:8px;align-content:start;min-height:150px;padding:18px;text-align:left;white-space:normal;background:var(--panel);border-color:#39424f;border-radius:var(--r-3)}
+.tool-card strong{font-size:var(--fs-5);font-weight:600;color:var(--ink-1)}
+.tool-card span{color:var(--ink-2);line-height:1.5}
+.tool-card:hover{border-color:var(--ui-accent);filter:none}
+.tool-back{display:block;margin:0 auto 12px;font-size:var(--fs-2)}
+/* The engine did not answer the page's first requests (main.js boot): in place of the cards, what happened and Reload. */
+.engine-down{display:grid;gap:8px;justify-items:center}
+.no-webgl{position:fixed;inset:0;z-index:1000;display:grid;align-content:center;justify-items:center;gap:10px;padding:24px;background:var(--stage);color:var(--ink-1);text-align:center}
+.no-webgl[hidden]{display:none}
+.no-webgl h1{margin:0}
+.no-webgl p{margin:0;max-width:68ch;overflow-wrap:anywhere}
+.engine-down h1{margin:0}
+.engine-down p{margin:0 0 10px;overflow-wrap:anywhere}
+.engine-down button{max-width:240px}
+/* The popup after a session that ended unexpectedly (crash-report.mjs): the .modal look, its two lines, two buttons. */
+.crash-report{width:min(520px,calc(100vw - 32px))}
+.crash-report p{margin:0 0 8px;line-height:1.5;overflow-wrap:anywhere}
+/* Training patches, a tool inside Stain segmentation's picker: a section that opens and closes. */
+.tool-section{margin:10px 0;padding:0 10px;border:1px solid var(--hair);border-radius:var(--r-2)}
+.tool-section[open]{border-color:var(--ui-accent);padding-bottom:6px}
+.tool-section>summary{display:flex;align-items:center;gap:6px;list-style:none;color:var(--ink-1);font-weight:600;padding:7px 0}
+.tool-section>summary::-webkit-details-marker{display:none}
+.tool-section>summary::before{content:'▸';color:var(--ink-2)}
+.tool-section[open]>summary::before{content:'▾'}
+#patch-picker>label{display:grid;gap:4px;margin:8px 0}
+#patch-picker input[type=number],#patch-picker select{width:100%;min-width:0}

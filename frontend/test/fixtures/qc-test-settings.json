@@ -1,0 +1,43 @@
+{
+ "what": "The settings a test of a setting takes: the engine's (engine/qc_test.py FLAGS, TRIED, KINDS, TEST_RANGES, LAYER_COST) and the page's (qc-panel.js TEST_*) twins, held to this file by tests/test_qc_test_settings.py and frontend/test/qc-test.test.mjs.",
+ "flags": [
+  "cell-compactness",
+  "prior-weight",
+  "diffusion-probability",
+  "burnin-voxel-size",
+  "ab-nihlo-bubble-prob",
+  "no-diffusion",
+  "diffusion-sigma-near",
+  "density-bins",
+  "voxel-layers"
+ ],
+ "tried": {
+  "cell-compactness": true,
+  "prior-weight": true,
+  "diffusion-probability": false,
+  "burnin-voxel-size": false,
+  "ab-nihlo-bubble-prob": false,
+  "no-diffusion": false,
+  "diffusion-sigma-near": false,
+  "density-bins": false,
+  "voxel-layers": false
+ },
+ "kinds": {
+  "cell-compactness": "number",
+  "prior-weight": "number",
+  "diffusion-probability": "number",
+  "burnin-voxel-size": "choice",
+  "ab-nihlo-bubble-prob": "number",
+  "no-diffusion": "switch",
+  "diffusion-sigma-near": "number",
+  "density-bins": "whole",
+  "voxel-layers": "whole"
+ },
+ "ranges": {
+  "diffusion-probability": [
+   0.1,
+   0.3
+  ]
+ },
+ "layer_cost": 0.0226
+}

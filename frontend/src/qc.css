@@ -1,0 +1,153 @@
+/* The mixing check: its panel, the stage chip and the timeline lane. Linked after
+   styles/tokens.css and app.css. Nothing here animates: no keyframes, transitions or blur; motion is drawn by the panel
+   only when something changed (qc-panel.js). */
+.qc-panel,.qc-chip {
+  --qc-little:#6b3f63; --qc-some:#b2477a; --qc-mixed:#f08cbc; --qc-accent:#d55181;
+  --qc-unjudged:var(--unmapped,#5c6573);
+  /* One type scale (11 / 12.5 / 14 / 28 px), one colour language (own blue, neighbours magenta, the suspect
+     glow, moved-out teal) and the floating cards' tokens (radius, hairline, deep translucent surface, one soft shadow). */
+  --qc-fs-s:11px; --qc-fs-m:12.5px; --qc-fs-l:14px; --qc-fs-xl:28px;
+  --qc-own:#3987e5; --qc-nb:#d55181; --qc-glow:#ff4fa3; --qc-teal:#2ec4b6;
+  --qc-card-radius:var(--card-radius,12px); --qc-card-surface:var(--card-surface,rgba(14,17,22,.88));
+  --qc-card-shadow:var(--card-shadow,0 6px 20px rgba(0,0,0,.32)); --qc-card-border:var(--card-border,var(--hair));
+  color:var(--ink-1); font-family:var(--font-ui); font-variant-numeric:tabular-nums;
+}
+.qc-panel { min-width:0; font-size:var(--qc-fs-m); line-height:1.5; }
+.qc-panel * { box-sizing:border-box; }
+/* The header is the app's panel heading (its marker kept, as the other panels'), with the one switch at its right. */
+.qc-panel[open] > .qc-header { margin-bottom:10px; }
+/* The switch is drawn as one: a track with its knob at the left and "Off", or filled with the knob at
+   the right and "On"; it never slides (nothing animates). */
+.qc-switch { float:right; display:inline-flex; align-items:center; gap:6px; margin:-4px 0 0 8px; min-width:60px; height:24px;
+  min-height:24px; padding:0 10px 0 3px; border-radius:12px; font:600 var(--fs-1) var(--font-ui); letter-spacing:0;
+  text-transform:capitalize; color:var(--ink-2); background:var(--stage); border:1px solid var(--hair); cursor:pointer; }
+.qc-switch::before { content:''; flex:none; width:16px; height:16px; border-radius:50%; background:var(--ink-3); box-shadow:0 1px 2px #0009; }
+.qc-switch[aria-checked=true] { flex-direction:row-reverse; padding:0 3px 0 10px; color:#fff; background:var(--accent-fill); border-color:var(--ui-accent); }
+.qc-switch[aria-checked=true]::before { background:#fff; }
+.qc-switch[aria-checked=mixed]::before { opacity:.35; }
+/* Off (the default) the panel is its heading, the switch and two short lines. */
+.qc-panel.qc-off .qc-status { margin:4px 0 0; }
+.qc-panel.qc-off .qc-status p { margin-bottom:4px; }
+.qc-body { padding-top:2px; }
+.qc-panel p { margin:0 0 8px; overflow-wrap:anywhere; }
+/* Section labels in small caps, an ⓘ beside the ones that explain themselves. */
+.qc-panel h3 { display:flex; align-items:center; gap:6px; margin:14px 0 8px; color:var(--ink-2); font-size:var(--qc-fs-m); font-weight:600;
+  font-variant-caps:all-small-caps; letter-spacing:.05em; text-transform:none; }
+.qc-panel h4 { margin:0 0 4px; color:var(--ink-1); font-size:var(--fs-3); font-weight:600; }
+.qc-subtitle,.qc-muted { color:var(--ink-2); }
+.qc-small { font-size:var(--qc-fs-s); }
+.qc-status { margin:8px 0; color:var(--ink-2); }
+.qc-status:empty { display:none; }
+.qc-status .qc-button { margin-top:2px; }
+.qc-progress { display:block; width:100%; height:8px; margin:8px 0; border:0; border-radius:4px; overflow:hidden; appearance:none; background:var(--hair); accent-color:var(--qc-accent); }
+.qc-progress::-webkit-progress-bar { background:var(--hair); }
+.qc-progress::-webkit-progress-value { background:var(--qc-accent); }
+.qc-progress::-moz-progress-bar { background:var(--qc-accent); }
+/* The number and its label, one verdict line, the retention line only when it moves the number; the rest is
+   in the ⓘ. The number is the block's one bold line. */
+.qc-headline { margin-top:10px; }
+.qc-number-line { display:flex; align-items:baseline; flex-wrap:wrap; gap:2px 7px; margin-bottom:2px; }
+.qc-number { font-size:var(--qc-fs-xl); font-weight:600; letter-spacing:-.6px; line-height:1.1; color:var(--ink-1); }
+.qc-number-label { font-size:var(--qc-fs-l); color:var(--ink-1); }
+/* The ⓘ (qc-panel.js INFO_ICON): an inline SVG at one stroke weight, muted until pointed at or focused. */
+.qc-info { display:inline-flex; flex:none; align-self:center; width:14px; height:14px; color:var(--ink-3); cursor:help; vertical-align:-2px; }
+.qc-info:hover,.qc-info:focus-visible { color:var(--ink-1); }
+.qc-info svg { width:14px; height:14px; fill:none; stroke:currentColor; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; }
+.qc-panel .qc-change { margin-bottom:2px; color:var(--ink-1); font-size:var(--qc-fs-m); }
+.qc-panel .qc-start,.qc-panel .qc-rough { margin-bottom:2px; }
+/* A result of another iteration than the frame on screen: a short line under the number, why in its tooltip. */
+.qc-panel .qc-snapped { margin-bottom:2px; cursor:help; }
+.qc-retention { display:flex; align-items:center; gap:5px; }
+.qc-notices { color:var(--ink-2); }
+.qc-notices:empty { display:none; }
+/* The chart's title is its ⓘ, in the corner above the plot (the chart leaves 14 px there). */
+.qc-chart { position:relative; margin:12px 0 8px; min-width:0; }
+.qc-chart > .qc-chart-caption { position:absolute; top:0; right:0; z-index:1; margin:0; line-height:0; }
+.qc-chart-canvas { display:block; max-width:100%; }
+.qc-chart-readout { margin:6px 0 0!important; padding:5px 8px; border:1px solid var(--hair); border-radius:var(--r-1); background:var(--raised); color:var(--ink-1); font-size:var(--fs-1); }
+.qc-chart-legend { display:grid; gap:4px; color:var(--ink-2); font-size:var(--fs-1); }
+.qc-chart-legend:empty { display:none; }
+.qc-band-key::before { content:''; display:inline-block; width:18px; height:7px; margin-right:5px; vertical-align:middle; background:var(--other); opacity:.4; }
+.qc-button { font:inherit; line-height:1.4; color:var(--ink-1); background:var(--raised); border:1px solid var(--hair); border-radius:var(--r-2); padding:4px 9px; min-height:var(--control-h-sm,24px); cursor:pointer; white-space:normal; }
+.qc-button:disabled { opacity:.5; cursor:default; }
+.qc-button[aria-pressed=true] { background:var(--accent-weak); border-color:var(--ui-accent); }
+.qc-button:focus-visible,.qc-panel summary:focus-visible,.qc-info:focus-visible,.qc-chart-canvas:focus-visible,.qc-chip:focus-visible { outline:2px solid var(--focus); outline-offset:3px; }
+.qc-body > [data-action=show-cells] { width:100%; margin:2px 0 4px; }
+/* No area list: its rows, tags and card are not drawn. */
+.qc-slot[hidden] { display:none; }
+.qc-suggestion-card,.qc-trial { margin:8px 0 12px; padding:10px; border:1px solid var(--hair); border-radius:var(--r-2); background:var(--stage); overflow-wrap:anywhere; }
+/* The card in view: its title, one short why, the Setting line
+   with its hint in an ⓘ, the confidence and the buttons; the rest folds under Why? (.qc-evidence). */
+.qc-panel .qc-card-why { margin-bottom:6px; }
+.qc-panel .qc-setting { margin-bottom:6px; border-left:2px solid var(--hair); padding-left:7px; }
+.qc-setting .qc-info { margin-left:5px; }   /* right after the words, also when they wrap */
+.qc-panel .qc-confidence { margin-bottom:0; font-weight:600; }
+.qc-cost,.qc-timing { color:var(--ink-2); }
+.qc-actions { display:flex; gap:6px; flex-wrap:wrap; margin:10px 0; }
+.qc-suggestion-card .qc-actions { margin-bottom:0; }   /* the card ends with its buttons while Why? is folded */
+.qc-actions [data-action=new-run] { width:100%; text-align:left; }
+/* The card's main action stands out (qc-panel.js [data-primary]): New run is the app's filled primary button, Try it the
+   accent outline; the other one is a plain button. */
+.qc-actions [data-action=try][data-primary] { border-color:var(--ui-accent); color:var(--ui-accent); }
+.qc-text-button { background:transparent; border-color:transparent; padding-inline:2px; color:var(--ui-accent); }
+/* Under Why?: the why's other sentences, the cost, the timing, the tests behind it, then the footer's caveats under a
+   hairline. */
+.qc-evidence { margin-top:10px; padding:8px; background:var(--raised); border-radius:var(--r-1); }
+.qc-panel .qc-evidence p { margin-bottom:6px; }
+.qc-panel .qc-evidence p:last-child { margin-bottom:0; }
+.qc-card-footer { padding-top:6px; border-top:1px solid var(--hair); }
+.qc-more { margin-bottom:12px; }
+.qc-more .qc-button { display:block; width:100%; text-align:left; margin:5px 0; }
+.qc-trial-rows { display:grid; gap:6px; margin:10px 0; }
+.qc-trial-row { display:flex; align-items:center; justify-content:space-between; gap:5px; font-size:var(--fs-1); }
+.qc-row-change { position:relative; display:block; flex:0 0 27px; height:1px; margin:0 3px; background:var(--ink-2); }
+.qc-row-change::before,.qc-row-change::after { content:''; position:absolute; top:-3px; width:7px; height:7px; border-radius:50%; }
+.qc-row-change::before { left:0; border:1px solid var(--ink-2); background:var(--stage); }
+.qc-row-change::after { right:0; background:var(--qc-accent); }
+.qc-row-change[data-direction=down]::before { right:0; left:auto; }
+.qc-row-change[data-direction=down]::after { right:auto; left:0; }
+.qc-verdict { font-weight:500; }
+.qc-finished { margin:8px 0; }
+.qc-how { margin-top:6px; color:var(--ink-2); }
+.qc-how summary { color:var(--ink-2); font-size:var(--qc-fs-s); }
+.qc-how ol { padding-left:18px; margin:6px 0 0; font-size:var(--qc-fs-s); }
+.qc-how li { padding-left:2px; margin-bottom:4px; }
+.qc-panel .qc-how-learned { margin:6px 0 0; color:var(--ink-3); font-size:var(--qc-fs-s); }
+.qc-panel [hidden],.qc-chip [hidden] { display:none!important; }
+/* The selected cell's row, first in the body (qc-panel.js setCell): its name, Go deeper's button (qc-deeper.css) and its
+   mixing line, drawn like the cell card (app.css .cell-card). */
+.qc-cell { margin:0 0 10px; padding:8px 10px; border:1px solid var(--hair); border-radius:var(--r-2); background:var(--stage); }
+.qc-cell-head { display:flex; align-items:center; gap:8px; font-weight:600; }
+.qc-cell-head i { flex:none; width:12px; height:12px; border-radius:3px; }
+.qc-cell-name { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.qc-panel .qc-card-line { margin:6px 0 0; }
+/* The test square right under the row (qc-panel.js renderTest), drawn as the row's
+   continuation: "Test a setting here…" under "Go deeper ›"; the test itself is in the stage's corner, so
+   here one line says it is open, with a dot for what it is doing (static: nothing here moves). Alone (no cell selected
+   while a test is open) it is a box of its own. */
+.qc-cell:not([hidden]):has(+ .qc-test:not([hidden])) { margin-bottom:0; padding-bottom:2px; border-bottom:0; border-radius:var(--r-2) var(--r-2) 0 0; }
+.qc-test { margin:0 0 10px; padding:4px 10px 8px; border:1px solid var(--hair); border-top:0; border-radius:0 0 var(--r-2) var(--r-2); background:var(--stage); overflow-wrap:anywhere; }
+.qc-cell[hidden] + .qc-test { padding-top:8px; border-top:1px solid var(--hair); border-radius:var(--r-2); }
+.qc-test-open { display:block; width:100%; margin:4px 0 0; text-align:center; }
+.qc-panel .qc-test-status { display:flex; align-items:center; gap:7px; margin:6px 0 0; color:var(--ink-2); cursor:default; }
+.qc-test-status::before { content:''; flex:none; width:7px; height:7px; border-radius:50%; background:var(--ink-3); }
+.qc-test-status[data-phase=running]::before { background:var(--qc-glow); box-shadow:0 0 0 3px rgba(255,79,163,.18); }
+.qc-test-status[data-phase=done]::before { background:var(--ui-accent); }
+
+/* The stage chip, under the HUD; a whole-sample run's hint moves below it while it shows. A floating card (the cards'
+   radius, hairline, surface and one soft shadow). */
+.qc-chip-host { position:absolute; left:12px; top:118px; z-index:2; max-width:calc(100% - 70px); }
+.qc-chip-host[hidden] { display:none; }
+.qc-chip-host:not([hidden]) ~ .tiled-hint { top:160px; }
+.qc-chip { display:inline-flex; align-items:center; gap:10px; max-width:100%; min-height:30px; padding:6px 14px; border:1px solid var(--qc-card-border);
+  border-radius:var(--qc-card-radius); background:var(--qc-card-surface); font-size:var(--qc-fs-m); text-align:left; cursor:pointer;
+  box-shadow:var(--qc-card-shadow); }
+.qc-chip span { min-width:0; overflow-wrap:anywhere; }
+.qc-chip[data-state=learning],.qc-chip[data-state=waiting],.qc-chip[data-state=waiting-start] { color:var(--ink-2); }
+.qc-sparkline { flex:0 0 48px; display:block; width:48px; height:14px; }
+
+/* The timeline's mixing lane (timeline.js LANE_H) is drawn inside the timeline's own 116 px: the dock, and so the stage,
+   never changes size for the check (visual parity with the check on). */
+
+/* The Mixing legend (qc-overlay.mjs, bottom left of the stage) stays clear of the prior's hint there. */
+.stage-wrap > .prior-hint:not([hidden]) ~ .qc-legend { bottom:96px!important; }

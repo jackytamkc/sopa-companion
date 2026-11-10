@@ -1,0 +1,127 @@
+# A tag v<version> (the companion's version) builds both packages (proseg-live for Linux, macOS on Apple silicon and
+# Windows x64), installs them on each of those systems exactly as the README tells a tester there (on Linux with a
+# squatter's index and find-links folders beside PyPI, which those lines must never use), runs the app's tests and the
+# notebook route end to end on each system (ci/launch_smoke.py), and publishes the release that alpha testers
+# download (README, Install). Started by hand it does the same and publishes nothing. Every action is pinned to the
+# commit of the release named beside it.
+# The token can write to the repository only in the job that publishes, after everything else has passed (and sign the
+# files' build provenance there): the others run code from PyPI (the build backends,
+# sopa's packages), and no checkout keeps the token for later steps.
+name: release
+on:
+  push: {tags: ["v*"]}
+  workflow_dispatch:
+permissions: {contents: read}
+defaults: {run: {shell: bash}}
+jobs:
+  tests:
+    uses: ./.github/workflows/tests.yml
+    with: {other_systems: true}
+  proseg-live:
+    uses: ./.github/workflows/proseg-live.yml
+    with: {other_systems: true}
+  companion:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1          # v7.0.1
+        with: {persist-credentials: false}
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0      # v7.1.0
+        with: {python-version: "3.12"}
+      - run: python -m pip install build
+      - run: python -m build --outdir dist .
+      - run: python ci/requirements.py > dist/dependencies.txt
+      - run: |
+          version=""; [[ "$GITHUB_REF_TYPE" == tag ]] && version="${GITHUB_REF_NAME#v}"
+          python ci/check_companion.py dist ${version:+"$version"}
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9   # v7.0.2
+        with: {name: companion, path: dist/*}
+  install:
+    needs: [proseg-live, companion]
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-14, windows-2022]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 75
+    env: {CUDA_VISIBLE_DEVICES: ""}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1          # v7.0.1
+        with: {persist-credentials: false}
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with: {path: sopa-companion-release, merge-multiple: true}
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0      # v7.1.0
+        with: {python-version: "3.12"}
+      - uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e        # v10.3.2
+        with: {version: "0.11.28"}
+      # The environment's own Python: bin/python on Linux and macOS, Scripts/python.exe on Windows.
+      - name: sopa as its guide installs it, in a venv with pip (CPU PyTorch, for the runner's disk)
+        run: |
+          python -m venv env
+          py=env/bin/python; [ -x "$py" ] || py=env/Scripts/python.exe
+          echo "ENV_PY=$py" >> "$GITHUB_ENV"
+          uv pip install --python "$py" --torch-backend cpu 'sopa[cellpose]'
+      - name: A squatter's index (both names above the release's versions), put beside PyPI
+        if: runner.os == 'Linux'
+        run: python ci/squat_index.py squat
+      - name: The squatter's wheels as find-links folders in the environment's own pip settings too
+        if: runner.os == 'Linux'
+        run: printf '[global]\nfind-links = %s/squat/sopa-companion %s/squat/proseg-live\n' "$PWD" "$PWD" > env/pip.conf
+      # The README's install lines, exactly, with pip; the release they download from is the one this run publishes, so
+      # its download is this run's own files, taken by the same two patterns into the same new folder.
+      - name: The README's install lines, exactly, with pip
+        if: runner.os == 'Linux'
+        env:
+          PIP_EXTRA_INDEX_URL: "file://${{ github.workspace }}/squat"
+          PIP_FIND_LINKS: "${{ github.workspace }}/squat/sopa-companion ${{ github.workspace }}/squat/proseg-live"
+        run: |
+          d=$(mktemp -d)
+          cp sopa-companion-release/sopa_companion-*.whl sopa-companion-release/proseg_live-*_$(uname -m).whl "$d"
+          env/bin/pip install "sopa-companion[all]" "$d"/sopa_companion-*.whl "$d"/proseg_live-*.whl
+      # macOS takes Linux's lines as they are: uname -m names its wheel there (arm64).
+      - name: The README's install lines on macOS, exactly, with pip
+        if: runner.os == 'macOS'
+        run: |
+          d=$(mktemp -d)
+          cp sopa-companion-release/sopa_companion-*.whl sopa-companion-release/proseg_live-*_$(uname -m).whl "$d"
+          env/bin/pip install "sopa-companion[all]" "$d"/sopa_companion-*.whl "$d"/proseg_live-*.whl
+      # Windows' lines (PowerShell), in the environment made active as the README has it.
+      - name: The README's install lines on Windows, exactly, with pip
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          . ./env/Scripts/Activate.ps1
+          $d = New-Item -ItemType Directory -Path (Join-Path ([IO.Path]::GetTempPath()) ([guid]::NewGuid()))
+          Copy-Item sopa-companion-release/sopa_companion-*.whl, sopa-companion-release/proseg_live-*_amd64.whl $d
+          pip install "sopa-companion[all]" (Resolve-Path "$d\sopa_companion-*.whl") (Resolve-Path "$d\proseg_live-*.whl")
+      - run: ci/install_smoke.sh env/bin sopa-companion-release
+        if: runner.os == 'Linux'
+      - name: The notebook route end to end (a kernel, proseg, Cellpose, saves, close, a killed kernel)
+        run: |
+          uv pip install --python "$ENV_PY" jupyter_client ipykernel
+          "$ENV_PY" ci/launch_smoke.py "$RUNNER_TEMP/launch-smoke"
+  publish:
+    needs: [tests, install]
+    if: github.event_name == 'push' && github.ref_type == 'tag'
+    runs-on: ubuntu-24.04
+    permissions: {contents: write, id-token: write, attestations: write}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1          # v7.0.1
+        with: {persist-credentials: false}
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with: {path: release, merge-multiple: true}
+      - name: The wheels for every system, the sources and their checksums
+        run: |
+          cd release && sha256sum -- * > SHA256SUMS
+      # Build provenance: every file of the release signed with the workflow run and the commit that built it, which
+      # anyone with the file can check (gh attestation verify FILE --repo jackytamkc/sopa-companion). GitHub makes them
+      # for public repositories only (a private one needs GitHub Enterprise Cloud): skipped in a private copy.
+      - name: The release files' build provenance
+        if: ${{ !github.event.repository.private }}
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8   # v4.2.2
+        with: {subject-path: "release/*"}
+      - name: Publish the release
+        env: {GH_TOKEN: "${{ github.token }}"}
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          sed "s/{version}/$version/g; s/{tag}/$GITHUB_REF_NAME/g" ci/release-notes.md > notes.md
+          gh release create "$GITHUB_REF_NAME" release/* --title "SoPA companion $version (alpha)" --notes-file notes.md

@@ -1,0 +1,190 @@
+/* The test corner (qc-test-corner.mjs): a floating card inside the stage,
+   docked at its bottom left. Nothing here moves by itself and nothing is blurred: the views are canvases the script
+   paints (the glow and the fades: at most 12 paints a second, only while shown). The floating card: 12 px radius, a
+   hairline border, a deep translucent surface, one soft shadow, 14 px padding; type 11 / 12.5 / 14 px, tabular numbers,
+   small caps for labels. Colours: the cell white, neighbours magenta #d55181, the glow #ff4fa3, moved out teal #2ec4b6;
+   a suspect the runs couldn't tell apart a plain grey ring; where the suspects went: stay in the glow's pink, to the
+   neighbour in its magenta, another cell in the accent's blue, background in a dark grey. The views keep their size at
+   the answer: the card is 2 x 220 + 12 + 34 = 486 px wide from the first frame on, and at the answer 783 px wide with the
+   answer's column beside the views on a stage of at least 807 px (qc-tc-wide), else the answer reads under them; a stage
+   too short for all of it scrolls the card's body. */
+.qc-tc {
+  --tc-radius:var(--card-radius,12px); --tc-hair:var(--card-border,#2f3743); --tc-surface:var(--card-surface,rgba(19,24,31,.96));
+  --tc-shadow:var(--card-shadow,0 18px 50px rgba(0,0,0,.55)); --tc-pad:var(--card-pad,14px);   /* the floating cards' tokens (app.css) */
+  --tc-ink:var(--ink-1,#e6eaf0); --tc-muted:var(--ink-2,#9aa4b2); --tc-raised:var(--raised,#1c222b); --tc-accent:var(--ui-accent,#7cc4ff);
+  --tc-cell:#ffffff; --tc-nb:#d55181; --tc-glow:#ff4fa3; --tc-moved:#2ec4b6; --tc-unsure:#9aa4b2; --tc-view:#0b0e13;
+  --tc-fewer:var(--good-ink,#7be29a); --tc-background:#4a5361;
+  position:absolute; left:12px; bottom:12px; top:auto; z-index:5; width:486px; max-width:calc(100% - 24px); max-height:calc(100% - 24px);
+  display:flex; flex-direction:column; box-sizing:border-box; overflow:hidden;
+  background:var(--tc-surface); border:1px solid var(--tc-hair); border-radius:var(--tc-radius); box-shadow:var(--tc-shadow);
+  color:var(--tc-ink); font:12.5px/1.45 var(--font-ui); font-variant-numeric:tabular-nums;
+}
+.qc-tc[data-phase=form], .qc-tc[data-phase=waiting], .qc-tc[data-phase=failed], .qc-tc[data-phase=cancelled] { width:360px; }
+.qc-tc.qc-tc-small { width:320px; }
+[data-theme=figure] .qc-tc { --tc-surface:var(--panel); --tc-hair:var(--hair); --tc-shadow:0 10px 30px rgba(0,0,0,.18); }
+.qc-tc[hidden], .qc-tc [hidden] { display:none!important; }
+.qc-tc * { box-sizing:border-box; }
+.qc-tc:focus { outline:none; }
+.qc-tc:focus-visible { outline:2px solid var(--focus,#fff); outline-offset:2px; }
+.qc-tc button:focus-visible, .qc-tc select:focus-visible, .qc-tc input:focus-visible, .qc-tc-info:focus-visible { outline:2px solid var(--focus,#fff); outline-offset:1px; }
+
+/* The header: the drag handle (double-click docks it again). */
+.qc-tc-head { display:flex; align-items:flex-start; gap:8px; padding:10px 8px 8px var(--tc-pad); border-bottom:1px solid var(--tc-hair);
+  cursor:grab; user-select:none; touch-action:none; }
+.qc-tc.qc-tc-small .qc-tc-head { border-bottom:0; }
+.qc-tc-names { flex:1; min-width:0; }
+.qc-tc-title { margin:0; font-size:14px; font-weight:600; line-height:1.3; letter-spacing:0; text-transform:none; color:var(--tc-ink); }
+.qc-tc-sub { margin:1px 0 0; font-size:11px; color:var(--tc-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.qc-tc-sub:empty { display:none; }
+.qc-tc-tools { display:flex; gap:2px; flex:none; }
+.qc-tc-tool { display:inline-flex; align-items:center; justify-content:center; width:28px; height:26px; min-height:0; padding:0; border:1px solid transparent;
+  border-radius:6px; background:transparent; color:var(--tc-muted); cursor:pointer; }
+.qc-tc-tool:hover { color:var(--tc-ink); background:var(--tc-raised); border-color:var(--tc-hair); }
+.qc-tc-tool svg { display:block; }
+
+.qc-tc-body { padding:12px var(--tc-pad) var(--tc-pad); overflow:auto; min-height:0; }
+.qc-tc-actions { display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:10px 0 0; }
+.qc-tc .qc-button { font-size:12.5px; }
+.qc-tc .qc-tc-primary { border-color:var(--tc-accent); color:var(--tc-accent); }
+.qc-tc-info { display:inline-flex; align-items:center; flex:none; width:16px; height:16px; margin-left:4px; color:var(--tc-muted); cursor:help; vertical-align:-3px; }
+.qc-tc-info:hover { color:var(--tc-ink); }
+
+/* Choosing: a label column, the control, "now 1"; the setting's note; the panel's lines (the pool, the area, the runs),
+   muted; why a test can't run here, a short list in each of up to two groups under a small-caps heading (what it means
+   in its tooltip). */
+.qc-tc-field { display:grid; grid-template-columns:52px 1fr auto; align-items:center; gap:4px 10px; margin:0 0 8px; }
+.qc-tc-label { font-size:11px; font-variant-caps:all-small-caps; letter-spacing:.06em; color:var(--tc-muted); }
+.qc-tc-select, .qc-tc-value { min-width:0; width:100%; height:var(--control-h-sm,26px); min-height:0; padding:2px 8px; font:inherit; color:var(--tc-ink);
+  background:var(--stage,#0e1116); border:1px solid var(--tc-hair); border-radius:6px; }
+.qc-tc-field .qc-tc-select { grid-column:2 / span 2; }
+.qc-tc-field-q .qc-tc-select { grid-column:2; }
+.qc-tc-choice { display:flex; flex-wrap:wrap; gap:6px; min-width:0; }
+.qc-tc-pick { min-height:0; height:var(--control-h-sm,26px); padding:2px 10px; border:1px solid var(--tc-hair); border-radius:6px;
+  background:var(--stage,#0e1116); color:var(--tc-ink); font:inherit; cursor:pointer; }
+.qc-tc-pick[aria-checked=true] { border-color:var(--ui-accent,#7cc4ff); box-shadow:inset 0 0 0 1px var(--ui-accent,#7cc4ff); }
+.qc-tc-pick:disabled { opacity:.45; cursor:default; }
+.qc-tc-now { font-size:11px; color:var(--tc-muted); white-space:nowrap; }
+.qc-tc-now[title]:not([title='']) { cursor:help; }
+.qc-tc-note { margin:0 0 4px; font-size:11px; color:var(--tc-muted); cursor:help; }
+.qc-tc-lines { margin:8px 0 0; padding:8px 0 0; border-top:1px solid var(--tc-hair); }
+.qc-tc-lines p { margin:0 0 3px; font-size:12px; line-height:1.4; }
+.qc-tc .qc-tc-area, .qc-tc .qc-tc-runs { color:var(--tc-muted); }
+/* The runs line, in the form and while the runs work: how they are made is its tooltip (the panel's How line); the pool
+   line's says what a test needs. */
+.qc-tc-runs[title]:not([title='']), .qc-tc-runs-line[title]:not([title='']) { cursor:help; }
+.qc-tc-pool[title]:not([title='']) { cursor:help; }
+.qc-tc-pool[data-pool=asking], .qc-tc-pool[data-pool=failed] { color:var(--tc-muted); }
+.qc-tc-reasons { margin:6px 0 0; font-size:12px; line-height:1.4; color:var(--tc-ink); }
+.qc-tc-reason-head { margin:6px 0 1px; font-size:11px; font-variant-caps:all-small-caps; letter-spacing:.06em; color:var(--tc-muted); cursor:help; }
+.qc-tc-reason-group:first-child .qc-tc-reason-head { margin-top:0; }
+.qc-tc-reasons ul { margin:0; padding-left:18px; }
+.qc-tc-reasons li { margin:0 0 2px; }
+.qc-tc-reasons li[title]:not([title='']) { cursor:help; }
+.qc-tc-reasons li::marker { color:var(--tc-muted); }
+.qc-tc-problems { margin:8px 0 0; color:var(--error,#ff6b6b); font-size:12px; }
+/* A press while the reasons are listed: what they amount to, in the ink of the list (no error: nothing went wrong). */
+.qc-tc-problems .qc-tc-not-here { color:var(--tc-ink); }
+.qc-tc-problems p { margin:0 0 2px; }
+.qc-tc-problems ul { margin:0; padding-left:18px; }
+
+/* Waiting: what the test waits for first, one line (every wait in its tooltip when there are more), and Cancel. */
+.qc-tc-waiting { margin:0; font-size:12.5px; line-height:1.45; color:var(--tc-ink); }
+.qc-tc-waiting[title]:not([title='']) { cursor:help; }
+
+/* Watching: two views side by side, each a square canvas with its numbers under it. */
+.qc-tc-views { display:flex; gap:12px; }
+.qc-tc-view { margin:0; min-width:0; }
+.qc-tc-caption { margin:0 0 5px; }
+.qc-tc-view-name { display:block; font-size:12.5px; font-variant-caps:all-small-caps; letter-spacing:.06em; color:var(--tc-ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.qc-tc-frame { position:relative; overflow:hidden; border-radius:8px; border:1px solid var(--tc-hair); background:var(--tc-view); }
+.qc-tc-canvas { display:block; }
+.qc-tc-wait { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; margin:0; padding:12px; text-align:center;
+  font-size:11px; color:var(--tc-muted); }
+.qc-tc-count, .qc-tc-total { margin:6px 0 0; font-size:12px; line-height:1.3; }
+.qc-tc-total { margin-top:1px; color:var(--tc-muted); }
+.qc-tc-count { cursor:help; }
+
+/* Muted lines under the views: the suspects the runs couldn't tell apart, led by their grey ring as drawn; the views at
+   the answer that may be older. */
+.qc-tc-unsure { display:flex; align-items:center; gap:6px; margin:6px 0 0; font-size:11px; line-height:1.45; color:var(--tc-muted); cursor:help; }
+.qc-tc-unsure i { flex:none; width:7px; height:7px; border-radius:50%; border:1px solid var(--tc-unsure); opacity:.85; }
+.qc-tc-unsure span { min-width:0; }
+.qc-tc .qc-tc-stale { margin:6px 0 0; font-size:11px; line-height:1.45; color:var(--tc-muted); cursor:help; }
+
+/* The progress: a thin bar per side under the views (as now above, with the value below; the ticks end settling and
+   refining), then its line with Cancel, the runs line and, after a start again, its line. */
+.qc-tc-progress { margin:10px 0 0; }
+.qc-tc-track { position:relative; height:5px; border-radius:3px; background:var(--tc-raised); overflow:hidden; }
+.qc-tc-fill { position:absolute; left:0; height:2px; border-radius:1px; }
+.qc-tc-fill[data-run=control] { top:0; background:var(--tc-ink); }
+.qc-tc-fill[data-run=test] { top:3px; background:var(--tc-accent); }
+.qc-tc-mark { position:absolute; top:0; bottom:0; width:1px; background:var(--tc-muted); }
+.qc-tc-progress-row { display:flex; align-items:center; gap:10px; margin:6px 0 0; }
+.qc-tc-progress-line { flex:1; min-width:0; margin:0; font-size:12px; color:var(--tc-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:help; }
+.qc-tc-runs-line, .qc-tc .qc-tc-retry { margin:4px 0 0; font-size:11px; line-height:1.45; color:var(--tc-muted); }
+
+/* After the answer: replay and the scrubber, where the progress was. */
+.qc-tc-scrub { display:flex; align-items:center; gap:8px; margin:8px 0 0; }
+.qc-tc-scrubber { flex:1; min-width:60px; margin:0; }
+.qc-tc-scrub-at { font-size:11px; color:var(--tc-muted); white-space:nowrap; }
+
+/* The views' key, one line. */
+.qc-tc-legend { display:flex; flex-wrap:wrap; gap:3px 14px; margin:9px 0 0; font-size:11px; color:var(--tc-muted); }
+.qc-tc-key { display:inline-flex; align-items:center; gap:5px; cursor:help; }
+.qc-tc-key i { display:inline-block; flex:none; width:10px; height:10px; border-radius:2px; }
+.qc-tc-key-cell i { border:1.5px solid var(--tc-cell); box-shadow:0 0 4px 1px rgba(255,255,255,.35); }
+.qc-tc-key-nb i { border:1.5px solid var(--tc-nb); }
+.qc-tc-key-suspect i { width:8px; height:8px; margin:1px; border-radius:50%; background:#fff4fa; box-shadow:0 0 0 2px rgba(255,79,163,.6), 0 0 8px 3px rgba(255,79,163,.5); }
+.qc-tc-key-moved i { border-radius:50%; border:1.5px solid var(--tc-moved); background:transparent; }
+
+/* The answer, under the views: after Run again the earlier answer's word; then its parts, each under a hairline: a small
+   heading with its word or ⓘ, its lines; the cost rows (label, the runs' numbers, the change); a bar per side of where
+   the suspects went with their key; this cell alone; the answers. */
+.qc-tc-answer { margin:10px 0 0; padding:2px 0 0; border-top:1px solid var(--tc-hair); }
+.qc-tc-repeat { margin:8px 0 0; padding:6px 8px; border-radius:6px; background:var(--tc-raised); }
+.qc-tc-repeat p { margin:0; font-size:12px; line-height:1.4; }
+.qc-tc .qc-tc-repeat-note { margin-top:2px; font-size:11px; color:var(--tc-muted); }
+.qc-tc-part { margin:8px 0 0; }
+.qc-tc-part + .qc-tc-part { padding:8px 0 0; border-top:1px solid var(--tc-hair); }
+.qc-tc-part-head { display:flex; align-items:baseline; gap:8px; margin:0 0 3px; font-size:11px; font-weight:400; line-height:1.4; letter-spacing:.06em;
+  font-variant-caps:all-small-caps; text-transform:none; color:var(--tc-muted); }
+.qc-tc-part-title { flex:1; min-width:0; }
+.qc-tc-word { flex:none; font-size:12.5px; font-weight:600; letter-spacing:0; font-variant-caps:normal; color:var(--tc-ink); }
+.qc-tc-part[data-word=no] .qc-tc-word { color:var(--tc-muted); }
+.qc-tc-text { margin:0; font-size:12px; line-height:1.45; }
+.qc-tc-text[title]:not([title='']) { cursor:help; }
+.qc-tc-verdict { margin:0 0 2px; font-size:13px; font-weight:600; line-height:1.4; color:var(--tc-ink); }
+.qc-tc-part[data-word=fewer] .qc-tc-verdict { color:var(--tc-fewer); }
+.qc-tc-why { margin:3px 0 0; font-size:11px; line-height:1.45; color:var(--tc-muted); }
+.qc-tc-rows { margin:2px 0 0; }
+.qc-tc-row { display:flex; align-items:baseline; gap:10px; padding:2px 0; font-size:12px; line-height:1.35; }
+.qc-tc-row-label { flex:1; min-width:0; color:var(--tc-muted); }
+.qc-tc-row-value { flex:none; white-space:nowrap; text-align:right; color:var(--tc-ink); }
+.qc-tc-row-change { flex:none; min-width:42px; white-space:nowrap; text-align:right; color:var(--tc-muted); }
+.qc-tc .qc-tc-shrink { margin:3px 0 0; font-size:12px; font-weight:600; }
+.qc-tc-went { display:grid; grid-template-columns:72px 1fr; align-items:center; gap:8px; margin:4px 0 0; }
+.qc-tc-went-side { min-width:0; font-size:11px; color:var(--tc-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.qc-tc-bar { display:flex; height:10px; border-radius:3px; overflow:hidden; background:var(--tc-raised); cursor:help; }
+.qc-tc-bar i { display:block; height:100%; }
+.qc-tc [data-went=stay] i, .qc-tc-bar i[data-went=stay] { background:var(--tc-glow); }
+.qc-tc [data-went=neighbour] i, .qc-tc-bar i[data-went=neighbour] { background:var(--tc-nb); }
+.qc-tc [data-went=other] i, .qc-tc-bar i[data-went=other] { background:var(--tc-accent); }
+.qc-tc [data-went=background] i, .qc-tc-bar i[data-went=background] { background:var(--tc-background); }
+.qc-tc-went-key { display:flex; flex-wrap:wrap; gap:2px 12px; margin:6px 0 0; font-size:11px; color:var(--tc-muted); }
+.qc-tc-went-item { display:inline-flex; align-items:center; gap:5px; }
+.qc-tc-went-item i { display:inline-block; flex:none; width:9px; height:9px; border-radius:2px; }
+.qc-tc-answer .qc-tc-actions { margin-top:12px; }
+
+/* A wide stage: the answer beside the views. The views' column (its width set with the views': its lines wrap there)
+   holds the views, their muted lines, the scrubber and the key; the answer's column, past a hairline (14 + 1 + 14 px),
+   the earlier answer's word, the parts and the answers. 486 + 29 + 268 = 783 px wide. */
+.qc-tc.qc-tc-wide { width:783px; }
+.qc-tc.qc-tc-wide .qc-tc-body { display:flex; align-items:flex-start; }
+.qc-tc.qc-tc-wide .qc-tc-watch { flex:none; min-width:0; }
+.qc-tc.qc-tc-wide .qc-tc-answer { flex:1 1 0; min-width:0; align-self:stretch; margin:0 0 0 14px; padding:0 0 0 14px; border-top:0; border-left:1px solid var(--tc-hair); }
+.qc-tc.qc-tc-wide .qc-tc-answer > :first-child { margin-top:0; }
+.qc-tc.qc-tc-wide .qc-tc-answer .qc-tc-actions { margin-top:12px; }
+
+/* A test that stopped; what a press could not do (the panel's words). */
+.qc-tc-message { margin:0; font-size:12.5px; }
+.qc-tc-alert { margin:8px 0 0; font-size:12px; color:var(--error,#ff6b6b); }

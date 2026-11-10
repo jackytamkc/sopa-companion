@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 48 48">
+  <!-- SoPA companion. Drawn on the 48 px grid, so every edge is a whole pixel at 48 px: cells are 3-unit voxels (whole
+       pixels at 32, 48, 64, 96 and 128 px) with 2-unit gutters. One cell lit (white outline, soft fill), three of its
+       transcripts glowing at the edge it shares with the neighbour on the right, the likeliest brightest; the faint
+       dots are ordinary transcripts. -->
+  <defs>
+    <linearGradient id="tile" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0a1d38"/>
+      <stop offset="1" stop-color="#09505f"/>
+    </linearGradient>
+    <linearGradient id="sheen" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff" stop-opacity=".07"/>
+      <stop offset=".5" stop-color="#fff" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="halo">
+      <stop offset="0" stop-color="#ff4fa3" stop-opacity=".95"/>
+      <stop offset=".45" stop-color="#ff4fa3" stop-opacity=".45"/>
+      <stop offset="1" stop-color="#ff4fa3" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="hot">
+      <stop offset="0" stop-color="#ff8cc6"/>
+      <stop offset=".6" stop-color="#ff4fa3" stop-opacity=".9"/>
+      <stop offset="1" stop-color="#ff4fa3" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect x="3" y="3" width="42" height="42" rx="9" fill="url(#tile)"/>
+  <rect x="3" y="3" width="42" height="42" rx="9" fill="url(#sheen)"/>
+  <!-- A 1 px rim keeps the tile's edge on the dark dock. -->
+  <rect x="3.5" y="3.5" width="41" height="41" rx="8.5" fill="none" stroke="#fff" stroke-opacity=".1"/>
+  <!-- The other three cells, greyed as in the focus view. -->
+  <g fill="#a9d3e3">
+    <path d="M26 20H29V6H36V9H39V12H42V27H26Z" fill-opacity=".3"/>
+    <path d="M6 26H15V29H21V42H12V39H9V36H6Z" fill-opacity=".2"/>
+    <path d="M23 29H42V36H39V39H36V42H23Z" fill-opacity=".25"/>
+  </g>
+  <!-- The lit cell: a soft fill inside a 1-unit white outline. -->
+  <path d="M7 13H10V10H13V7H26V17H23V26H18V23H7Z" fill="#fff" fill-opacity=".28"/>
+  <path d="M6 12H9V9H12V6H27V18H24V27H17V24H6ZM7 13V23H18V26H23V17H26V7H13V10H10V13Z" fill="#fff" fill-rule="evenodd"/>
+  <g fill="#fff">
+    <circle cx="12" cy="13" r="1" fill-opacity=".75"/>
+    <circle cx="11" cy="20" r="1" fill-opacity=".6"/>
+  </g>
+  <g fill="#cfe8f2">
+    <circle cx="34" cy="14" r="1" fill-opacity=".45"/>
+    <circle cx="37" cy="22" r="1" fill-opacity=".4"/>
+    <circle cx="31" cy="25" r="1" fill-opacity=".35"/>
+    <circle cx="12" cy="31" r="1" fill-opacity=".35"/>
+    <circle cx="17" cy="37" r="1" fill-opacity=".3"/>
+    <circle cx="27" cy="32" r="1" fill-opacity=".35"/>
+    <circle cx="36" cy="35" r="1" fill-opacity=".35"/>
+  </g>
+  <!-- The glowing transcripts: halo, hot ring and core; brightness follows how likely each one is a neighbour's. -->
+  <g opacity=".75">
+    <circle cx="16.5" cy="15.5" r="5.1" fill="url(#halo)"/>
+    <circle cx="16.5" cy="15.5" r="2.8" fill="url(#hot)"/>
+    <circle cx="16.5" cy="15.5" r="1.35" fill="#fff2f8"/>
+  </g>
+  <g opacity=".9">
+    <circle cx="20.5" cy="20.5" r="6" fill="url(#halo)"/>
+    <circle cx="20.5" cy="20.5" r="2.8" fill="url(#hot)"/>
+    <circle cx="20.5" cy="20.5" r="1.5" fill="#fff2f8"/>
+  </g>
+  <g>
+    <circle cx="23.5" cy="12.5" r="6.6" fill="url(#halo)"/>
+    <circle cx="23.5" cy="12.5" r="2.8" fill="url(#hot)"/>
+    <circle cx="23.5" cy="12.5" r="1.6" fill="#fff2f8"/>
+  </g>
+</svg>

@@ -1,0 +1,2 @@
+# docrep (pure Python, six only) has no wheel: left out of the resolution so nothing is built
+docrep ; sys_platform == "never"

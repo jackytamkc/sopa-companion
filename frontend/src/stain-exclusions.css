@@ -1,0 +1,32 @@
+/* stain-exclusions.mjs: the remove mode's button, Undo and Redo in one row, with what a press says under them. */
+#stain-exclude-tools{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+#stain-exclude-tools .missing-note{order:1;flex-basis:100%;margin:0}
+/* The mode's button is as wide as the longer of its two labels (data-off, data-on: hidden rows of no height), so Undo
+   and Redo never move under the pointer when the label changes. The mode on shows in its colour (class "on"). */
+#stain-exclude{display:inline-grid;justify-items:center}
+#stain-exclude::before,#stain-exclude::after{visibility:hidden;height:0;overflow:hidden}
+#stain-exclude::before{content:attr(data-off)}
+#stain-exclude::after{content:attr(data-on)}
+#stain-exclude.on{border-color:var(--ui-accent);color:var(--ui-accent)}
+/* The image in the mode: a crosshair, and the hand while a right-drag pans it. Over a removed area a click would select
+   (stain-exclusions.mjs hover), the pointer, also in the mode while no outline is being drawn. */
+.stage.removing{cursor:crosshair}
+.stage.over-area{cursor:pointer}
+.stage-wrap.grabbing .stage.removing{cursor:grabbing}
+/* The label of the area clicked on, for a screen reader only: on the image it is drawn beside the area. */
+#stain-exclude-selected{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+/* The same histogram and handles as Layers' contrast, with empty number boxes for unbounded ends. */
+#stain-exclude-size-row,#stain-exclude-bright-row{margin:10px 0}
+#stain-exclude-bright-row{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+#stain-exclude-bright-range{flex-basis:100%;min-width:0}
+.range-chooser .contrast{height:62px;position:relative;margin-top:6px}
+.range-chooser .contrast canvas{display:block;width:100%;height:55px;opacity:.65}
+.range-chooser .contrast input{position:absolute;inset:0;margin:0;width:100%;height:62px;pointer-events:none;appearance:none;background:transparent}
+.range-chooser .contrast input::-webkit-slider-thumb{appearance:none;width:10px;height:60px;background:#bcd9ed99;border:1px solid #d9efff;border-radius:2px;pointer-events:auto;cursor:ew-resize}
+.range-chooser .contrast input::-moz-range-thumb{width:8px;height:58px;background:#bcd9ed99;pointer-events:auto;cursor:ew-resize}
+.range-chooser .contrast input:focus-visible{outline:1px solid var(--ui-accent);outline-offset:2px}
+.range-chooser .contrast-values{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.range-chooser .contrast-values input{width:calc(50% - 24px);min-width:0;background:var(--stage);border:1px solid var(--hair);border-radius:var(--r-2);padding:4px 6px}
+.range-chooser .missing-note,.range-chooser .field-note{flex-basis:100%;margin:0}
+.range-chooser .field-note{display:none}
+#stain-exclude-bright-channel{max-width:100%;padding:4px 6px}

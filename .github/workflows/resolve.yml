@@ -1,0 +1,23 @@
+# Weekly: do a fresh sopa environment and the app still resolve together (+ ResolVI, + RAPIDS)? Metadata only
+# (uv pip compile --no-build): nothing is built, installed or run. A base or mixing set that no longer resolves on
+# Linux fails the job; RAPIDS and the other systems only warn. Every action is pinned to the commit of the release
+# named beside it.
+name: resolve
+on:
+  schedule: [{cron: "0 4 * * 1"}]
+  workflow_dispatch:
+permissions: {contents: read}
+jobs:
+  resolve:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1          # v7.0.1
+        with: {persist-credentials: false}
+      - uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e        # v10.3.2
+        with: {version: "0.11.28"}
+      - run: ci/resolve.sh ci/resolve/out
+      - if: always()
+        run: diff -ru ci/resolve/expected ci/resolve/out >> "$GITHUB_STEP_SUMMARY" || true
+      - if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9   # v7.0.2
+        with: {name: resolved, path: ci/resolve/out}

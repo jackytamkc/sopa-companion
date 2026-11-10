@@ -1,0 +1,28 @@
+# proseg-live: proseg 3.2.0 (Daniel C. Jones, GPL v3) with the SoPA companion's live-mode patch, as one program.
+# native/build.sh --package copies this file into the patched crate's folder, beside its Cargo.toml.
+[build-system]
+requires = ["maturin>=1.12,<2"]                # 1.12: the first that reads [tool.maturin] sbom (below)
+build-backend = "maturin"
+
+[project]
+name = "proseg-live"
+version = "3.2.0.2"                    # proseg's version; a fourth number for a new patch on the same proseg
+description = "proseg 3.2.0 with live mode (per-iteration snapshots, pause, step, its own counts) for the SoPA companion"
+readme = "PROSEG-LIVE.md"
+license = { file = "LICENSE.md" }
+requires-python = ">=3.9"
+classifiers = ["License :: OSI Approved :: GNU General Public License v3 (GPLv3)", "Programming Language :: Rust",
+               "Operating System :: POSIX :: Linux", "Private :: Do Not Upload"]
+
+[project.urls]
+"proseg" = "https://github.com/dcjones/proseg"
+
+[tool.maturin]
+bindings = "bin"
+targets = [{ name = "proseg-live", kind = "bin" }]   # not proseg (sopa's), not proseg-to-baysor
+strip = true
+locked = true
+include = [{ path = "proseg-live.patch", format = "sdist" }, { path = "PROSEG-LIVE.md", format = "sdist" }]
+# No software bill of materials: maturin's names the folder the wheel was built in (check.py refuses a wheel that
+# names the computer that built it).
+sbom = { rust = false }

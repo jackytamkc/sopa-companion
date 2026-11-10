@@ -1,0 +1,19 @@
+# The engine's environment of a source folder (.venv, Python 3.12: this computer's production and dev copies). A new
+# one, from the app's folder:
+#   python3 -m venv .venv && .venv/bin/pip install -r requirements.txt && .venv/bin/pip install --no-deps -e .
+# (--no-deps: pyproject.toml's dependencies are an installed copy's, sopa and proseg-live among them, which this
+# environment never holds.) Do not use this file to install into a sopa environment: its NumPy may be older.
+fastapi==0.143.2
+uvicorn[standard]==0.54.0
+httpx
+psutil
+platformdirs
+numpy==2.5.4
+pyarrow==26.0.0
+tifffile==2026.9.20
+imagecodecs==2026.10.10
+zarr==3.4.1
+pillow
+pytest
+zstandard
+orjson==3.13.0
