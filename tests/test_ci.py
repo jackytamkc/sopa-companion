@@ -341,7 +341,7 @@ def test_the_release_installs_and_runs_the_notebook_route_on_linux_macos_and_win
     from test_config_docs import INSTALL, WINDOWS_INSTALL
     release = (WORKFLOWS / "release.yml").read_text()
     install = jobs(release)["install"]
-    assert "os: [ubuntu-24.04, macos-14, windows-2022]" in install and "fail-fast: false" in install
+    assert "os: [ubuntu-24.04, macos-15, windows-2022]" in install and "fail-fast: false" in install
     lines = [line.strip() for line in install.splitlines()]
     mac = lines.index("if: runner.os == 'macOS'")
     copy = 'cp sopa-companion-release/sopa_companion-*.whl sopa-companion-release/proseg_live-*_$(uname -m).whl "$d"'

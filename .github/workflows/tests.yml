@@ -73,7 +73,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-14, windows-2022]
+        os: [macos-15, windows-2022]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
     env: {PYTHONDONTWRITEBYTECODE: "1"}
@@ -106,7 +106,9 @@ jobs:
         with: {version: "0.11.28"}
       - name: sopa, the app's needs and the mixing check's, with PyTorch's CUDA 13 build
         run: |
-          uv venv --python "$(command -v python)" "$RUNNER_TEMP/env"
+          # The interpreter by its own name for itself (python.exe with a Windows path): uv finds none at the shell's
+          # /c/.../python.
+          uv venv --python "$(python -c 'import sys; print(sys.executable)')" "$RUNNER_TEMP/env"
           py="$RUNNER_TEMP/env/Scripts/python.exe"
           python sopa_companion/ci/requirements.py test qc > "$RUNNER_TEMP/app.txt"
           uv pip install --python "$py" --torch-backend cu130 "sopa[cellpose]==2.2.11" "s3fs>=2024.1" -r "$RUNNER_TEMP/app.txt"
