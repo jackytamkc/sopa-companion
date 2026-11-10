@@ -1,5 +1,7 @@
 # SoPA companion
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24116670.svg)](https://doi.org/10.5281/zenodo.24116670)
+
 A companion to [sopa](https://github.com/prism-oncology/sopa) for your Jupyter notebook: `sopa_companion.launch(sdata)`
 opens a [SpatialData](https://spatialdata.scverse.org) sample written by sopa in your browser, and what you keep is
 added back to that same object, as sopa's own functions add it. Currently only the sopa API is supported (the app
@@ -516,4 +518,6 @@ iteration's own draw of proseg's count, its tooltip saying so.
   Cellpose, scvi-tools, RAPIDS and others) are installed separately, each under its own licence.
 - **The app's own code** (everything outside `native/`) is under the BSD 3-Clause licence: see [LICENSE](LICENSE).
 
-To cite the app, see [CITATION.cff](CITATION.cff) (GitHub's "Cite this repository").
+To cite the app, see [CITATION.cff](CITATION.cff) (GitHub's "Cite this repository"). Every release is archived on
+Zenodo: [10.5281/zenodo.24116670](https://doi.org/10.5281/zenodo.24116670) names all versions and leads to each
+version's own DOI.

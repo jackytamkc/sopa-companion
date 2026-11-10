@@ -9,6 +9,10 @@ authors:
 version: 0.6.2
 date-released: 2026-11-10
 license: BSD-3-Clause
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.24116670
+    description: "All versions, archived on Zenodo; each release has a DOI of its own there."
 repository-code: "https://github.com/jackytamkc/sopa-companion"
 keywords:
   - spatial transcriptomics
