@@ -1,25 +1,67 @@
 # SoPA companion
 
+[![PyPI](https://img.shields.io/pypi/v/sopa-companion)](https://pypi.org/project/sopa-companion/)
+[![Tests](https://github.com/jackytamkc/sopa-companion/actions/workflows/tests.yml/badge.svg)](https://github.com/jackytamkc/sopa-companion/actions/workflows/tests.yml)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24116670.svg)](https://doi.org/10.5281/zenodo.24116670)
+[![Licence: BSD-3-Clause](https://img.shields.io/badge/licence-BSD--3--Clause-blue)](https://github.com/jackytamkc/sopa-companion/blob/main/LICENSE)
 
-A companion to [sopa](https://github.com/prism-oncology/sopa) for your Jupyter notebook: `sopa_companion.launch(sdata)`
-opens a [SpatialData](https://spatialdata.scverse.org) sample written by sopa in your browser, and what you keep is
-added back to that same object, as sopa's own functions add it. Currently only the sopa API is supported (the app
-opens from a notebook, on the object you pass), and two tools are supported:
+**Watch your cells being segmented, and check the result before you keep it.** A companion to
+[sopa](https://github.com/prism-oncology/sopa) for your Jupyter notebook: `sopa_companion.launch(sdata)` opens a
+[SpatialData](https://spatialdata.scverse.org) sample written by sopa in your browser, and what you keep is added back
+to that same object, as sopa's own functions add it.
 
-- **Stain segmentation**: find cells in the sample's images with Cellpose, tile by tile over a rectangle, a lasso or
-  the whole sample; remove cells by area, size or stain brightness; make training patches for the Cellpose GUI; add the
-  result to your SpatialData as a shapes layer, the way sopa does.
-- **Proseg Live**: watch [proseg](https://github.com/dcjones/proseg) segment cells from the transcripts, one sampler
-  iteration at a time. Pause, step, scrub back to any earlier iteration, change proseg's settings while it runs, then
-  *Finish & save* proseg's own results from exactly the state on screen and add them to your SpatialData (shapes plus
-  their table, with sopa's own functions).
+![Proseg Live: the run plays, pauses, steps one iteration at a time and scrubs back, with the clusters and UMAP of every iteration beside the tissue](https://raw.githubusercontent.com/jackytamkc/sopa-companion/main/docs/media/live.webp)
 
-Around Proseg Live: live clusters and a UMAP of every iteration (on the CPU, or on an NVIDIA GPU with RAPIDS), a
-**mixing check** that estimates how much of each cell's RNA looks like a neighbour's (a ResolVI model learned once per
-sample on an NVIDIA GPU, or on a Mac's own GPU), **Go deeper** for one cell, a quick **test of a setting** on a small
-square, other segmentations of the sample drawn on the tissue, and **Compare**, which reads several segmentations side
-by side with the same model, each on its own UMAP and clusters (lined up with the run's) or all on one shared map.
+```bash
+pip install "sopa-companion[all]"
+```
+
+```python
+import sopa_companion
+app = sopa_companion.launch(sdata)     # sdata: a SpatialData saved to a local .zarr
+```
+
+Linux, macOS on Apple silicon and Windows; Python 3.12 or 3.13. The full steps are under [Install](#install).
+
+## What it does
+
+Currently only the sopa API is supported (the app opens from a notebook, on the object you pass), and two tools are
+supported: Proseg Live and Stain segmentation.
+
+### Watch proseg run
+
+**Proseg Live.** Watch [proseg](https://github.com/dcjones/proseg) segment cells from the transcripts, one sampler
+iteration at a time (the clip above). Pause, step, scrub back to any earlier iteration, change proseg's settings while
+it runs, then *Finish & save* proseg's own results from exactly the state on screen and add them to your SpatialData
+(shapes plus their table, with sopa's own functions). Live clusters and a UMAP of every iteration run beside the tissue,
+on the CPU or on an NVIDIA GPU with RAPIDS.
+
+You choose where the cells start (the sample's own cells and nuclei, a stain segmentation, another mask) and the
+region: a rectangle, a lasso or the whole sample.
+
+![The picker: the prior the cells start from, drawn on the tissue, and the region to segment](https://raw.githubusercontent.com/jackytamkc/sopa-companion/main/docs/media/picker.webp)
+
+### Check for mixed cells
+
+**The mixing check.** How much of each cell's RNA looks like a neighbour's? A ResolVI model, learned once per sample on
+an NVIDIA GPU or on a Mac's own GPU, estimates it for every iteration and shows it on the cells while the run goes on.
+**Go deeper** opens one cell, a quick **test of a setting** tries one of proseg's settings on a small square, and
+**Compare** reads several segmentations of the sample side by side with the same model, each on its own UMAP and
+clusters (lined up with the run's) or all on one shared map.
+
+![The mixing check: switched on in a run, its number and history, then shown on the cells as the run goes on](https://raw.githubusercontent.com/jackytamkc/sopa-companion/main/docs/media/mixing.webp)
+
+### Segment from the stain
+
+**Stain segmentation.** Find cells in the sample's images with Cellpose, tile by tile over a rectangle, a lasso or the
+whole sample; remove cells by area, size or stain brightness; make training patches for the Cellpose GUI; add the result
+to your SpatialData as a shapes layer, the way sopa does.
+
+![Stain segmentation: a rectangle drawn on the stain, Cellpose's cells arriving tile by tile, then a closer look](https://raw.githubusercontent.com/jackytamkc/sopa-companion/main/docs/media/stain.webp)
+
+The clips show the hippocampus of 10x Genomics' public
+[Fresh Frozen Mouse Brain for Xenium Explorer Demo](https://www.10xgenomics.com/datasets/fresh-frozen-mouse-brain-for-xenium-explorer-demo-1-standard)
+dataset (tiny subset; CC BY 4.0), read with `sopa.io.xenium`.
 
 How it is built: [docs/ARCHITECTURE.md](https://github.com/jackytamkc/sopa-companion/blob/main/docs/ARCHITECTURE.md). Working on the app itself:
 [docs/DEVELOPING.md](https://github.com/jackytamkc/sopa-companion/blob/main/docs/DEVELOPING.md).
