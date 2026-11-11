@@ -10,6 +10,11 @@
 [SpatialData](https://spatialdata.scverse.org) sample written by sopa in your browser, and what you keep is added back
 to that same object, as sopa's own functions add it.
 
+**None of the methods here are the companion's own.** sopa, Cellpose, proseg and ResolVI do the work; the companion
+runs them for you from a notebook, shows what they are doing as they do it, and puts their results side by side. Each
+part below says what runs underneath, and [What it is built on](#what-it-is-built-on) lists them with the papers to
+cite.
+
 ![Proseg Live: the run plays, pauses, steps one iteration at a time and scrubs back, with the clusters and UMAP of every iteration beside the tissue](https://raw.githubusercontent.com/jackytamkc/sopa-companion/main/docs/media/live.webp)
 
 ```bash
@@ -36,6 +41,12 @@ it runs, then *Finish & save* proseg's own results from exactly the state on scr
 (shapes plus their table, with sopa's own functions). Live clusters and a UMAP of every iteration run beside the tissue,
 on the CPU or on an NVIDIA GPU with RAPIDS.
 
+*Underneath:* [proseg](https://github.com/dcjones/proseg), by Daniel C. Jones and colleagues, does all of the
+segmentation. The app runs `proseg-live`, which is proseg 3.2.0 with a small patch that adds a snapshot of each
+iteration, pause, step and proseg's own counts along the way: the cells are proseg's. sopa prepares the transcripts
+for proseg and adds its result back to your SpatialData. The clusters and UMAP are the usual steps (normalisation, PCA,
+nearest neighbours, Leiden, UMAP), run with scikit-learn, igraph and umap-learn, or with RAPIDS on an NVIDIA GPU.
+
 You choose where the cells start (the sample's own cells and nuclei, a stain segmentation, another mask) and the
 region: a rectangle, a lasso or the whole sample.
 
@@ -48,11 +59,16 @@ the UMAP.
 
 ### Check for mixed cells
 
-**The mixing check.** How much of each cell's RNA looks like a neighbour's? A ResolVI model, learned once per sample on
-an NVIDIA GPU or on a Mac's own GPU, estimates it for every iteration and shows it on the cells while the run goes on.
-**Go deeper** opens one cell, a quick **test of a setting** tries one of proseg's settings on a small square, and
-**Compare** reads several segmentations of the sample side by side with the same model, each on its own UMAP and
-clusters (lined up with the run's) or all on one shared map.
+**The mixing check.** How much of each cell's RNA looks like a neighbour's? The check estimates it for every iteration
+and shows it on the cells while the run goes on.
+
+*Underneath:* the mixing check is [ResolVI](https://doi.org/10.1101/2025.01.20.634005) (Can Ergen and Nir Yosef), as
+[scvi-tools](https://scvi-tools.org) and [scVIVA-Tools](https://github.com/YosefLab/scviva-tools) implement it. ResolVI
+models each cell's counts as its own expression, RNA that reached it from neighbouring cells, and background; the
+companion learns one ResolVI model per sample (on an NVIDIA GPU, or a Mac's own GPU) and reads from it, for every cell,
+the share the model puts down to neighbours. What the companion adds is the pairing and the picture: it scores proseg's
+own count at every iteration, draws the result on the cells and along the run, and reads the sample's other
+segmentations with the same model, so you can see how proseg did against them.
 
 ![The mixing check: switched on in a run, its number and history, then shown on the cells as the run goes on](https://raw.githubusercontent.com/jackytamkc/sopa-companion/main/docs/media/mixing.webp)
 
@@ -60,8 +76,9 @@ clusters (lined up with the run's) or all on one shared map.
 
 ![Go deeper: a cell that looks mixed is clicked, and its window shows the share from neighbours, the genes and the neighbours](https://raw.githubusercontent.com/jackytamkc/sopa-companion/main/docs/media/deeper.webp)
 
-**Test a setting** before you commit to it: the "?" plays what the setting does, then the test runs proseg on a small
-square around the cell, as now and with your value, and shows both results side by side.
+**Test a setting** before you commit to it: the "?" plays what the setting does, then the test runs proseg itself on a
+small square around the cell, several times as now and with your value, and shows both results side by side. The
+settings are proseg's own; the companion adds none.
 
 ![Test a setting: the setting's demo, a value typed, the test running, and the two results side by side](https://raw.githubusercontent.com/jackytamkc/sopa-companion/main/docs/media/test.webp)
 
@@ -76,11 +93,35 @@ each on its own UMAP, coloured by mixing, then on one shared map.
 whole sample; remove cells by area, size or stain brightness; make training patches for the Cellpose GUI; add the result
 to your SpatialData as a shapes layer, the way sopa does.
 
+*Underneath:* [Cellpose](https://github.com/MouseLand/cellpose) (Carsen Stringer, Marius Pachitariu and colleagues)
+finds the cells; its default model here is Cellpose-SAM (`cpsam`). The companion cuts the region into tiles, runs
+Cellpose on each, joins the tiles' cells with sopa's own functions and adds them to your SpatialData as sopa does.
+Training patches open in Cellpose's own window, where its models are trained.
+
 ![Stain segmentation: a rectangle drawn on the stain, Cellpose's cells arriving tile by tile, then a closer look](https://raw.githubusercontent.com/jackytamkc/sopa-companion/main/docs/media/stain.webp)
 
 The clips show the hippocampus of 10x Genomics' public
 [Fresh Frozen Mouse Brain for Xenium Explorer Demo](https://www.10xgenomics.com/datasets/fresh-frozen-mouse-brain-for-xenium-explorer-demo-1-standard)
 dataset (tiny subset; CC BY 4.0), read with `sopa.io.xenium`.
+
+## What it is built on
+
+The companion is an interface. Every method it shows belongs to its authors, and if you use the companion, please cite
+the methods you used through it:
+
+| In the app | Method and software | Reference |
+|---|---|---|
+| Opening the sample, preparing a run, adding results back | [sopa](https://github.com/prism-oncology/sopa) | Blampey et al., *Nature Communications* 15, 4981 (2024). [doi:10.1038/s41467-024-48981-z](https://doi.org/10.1038/s41467-024-48981-z) |
+| The sample itself | [SpatialData](https://spatialdata.scverse.org) | Marconato et al., *Nature Methods* 22, 58–62 (2025). [doi:10.1038/s41592-024-02212-x](https://doi.org/10.1038/s41592-024-02212-x) |
+| Proseg Live, the test of a setting | [proseg](https://github.com/dcjones/proseg) | Jones et al., "Cell simulation as cell segmentation", *Nature Methods* 22, 1331–1342 (2025). [doi:10.1038/s41592-025-02697-0](https://doi.org/10.1038/s41592-025-02697-0) |
+| Stain segmentation, training patches | [Cellpose](https://github.com/MouseLand/cellpose) and Cellpose-SAM | Stringer et al., *Nature Methods* 18, 100–106 (2021). [doi:10.1038/s41592-020-01018-x](https://doi.org/10.1038/s41592-020-01018-x). Pachitariu, Rariden and Stringer, "Cellpose-SAM", bioRxiv (2025). [doi:10.1101/2025.04.28.651001](https://doi.org/10.1101/2025.04.28.651001) |
+| The mixing check, Go deeper, Compare's numbers | ResolVI, in [scvi-tools](https://scvi-tools.org) and [scVIVA-Tools](https://github.com/YosefLab/scviva-tools) | Ergen and Yosef, "ResolVI: addressing noise and bias in spatial transcriptomics", bioRxiv (2025). [doi:10.1101/2025.01.20.634005](https://doi.org/10.1101/2025.01.20.634005). Gayoso et al., *Nature Biotechnology* 40, 163–166 (2022). [doi:10.1038/s41587-021-01206-w](https://doi.org/10.1038/s41587-021-01206-w) |
+| Clusters and UMAP | Leiden (igraph), UMAP (umap-learn), scikit-learn; [RAPIDS](https://rapids.ai) on an NVIDIA GPU | Traag, Waltman and van Eck, *Scientific Reports* 9, 5233 (2019). [doi:10.1038/s41598-019-41695-z](https://doi.org/10.1038/s41598-019-41695-z). McInnes, Healy and Melville, [arXiv:1802.03426](https://arxiv.org/abs/1802.03426) (2018) |
+| The clips on this page | 10x Genomics' public Xenium mouse-brain dataset (CC BY 4.0) | [Fresh Frozen Mouse Brain for Xenium Explorer Demo](https://www.10xgenomics.com/datasets/fresh-frozen-mouse-brain-for-xenium-explorer-demo-1-standard) |
+
+What the companion adds is the interface around them: starting them from a notebook on one SpatialData object, showing
+each step as it happens, and reading several segmentations with one model so they can be compared. The companion
+itself can be cited by its DOI ([Licence](#licence)).
 
 How it is built: [docs/ARCHITECTURE.md](https://github.com/jackytamkc/sopa-companion/blob/main/docs/ARCHITECTURE.md). Working on the app itself:
 [docs/DEVELOPING.md](https://github.com/jackytamkc/sopa-companion/blob/main/docs/DEVELOPING.md).
@@ -563,4 +604,5 @@ iteration's own draw of proseg's count, its tooltip saying so.
 To cite the app, see [CITATION.cff](https://github.com/jackytamkc/sopa-companion/blob/main/CITATION.cff) (GitHub's
 "Cite this repository"). Every release is archived on
 Zenodo: [10.5281/zenodo.24116670](https://doi.org/10.5281/zenodo.24116670) names all versions and leads to each
-version's own DOI.
+version's own DOI. The methods it runs are their authors': please cite those you used through it
+([What it is built on](#what-it-is-built-on)).
