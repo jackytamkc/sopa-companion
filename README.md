@@ -41,6 +41,11 @@ region: a rectangle, a lasso or the whole sample.
 
 ![The picker: the prior the cells start from, drawn on the tissue, and the region to segment](https://raw.githubusercontent.com/jackytamkc/sopa-companion/main/docs/media/picker.webp)
 
+Zoom from the whole sample down to single cells and their transcripts; point at a cell and its cluster lights up on
+the UMAP.
+
+![Zooming from the whole sample to single cells and transcripts, then pointing at cells](https://raw.githubusercontent.com/jackytamkc/sopa-companion/main/docs/media/zoom.webp)
+
 ### Check for mixed cells
 
 **The mixing check.** How much of each cell's RNA looks like a neighbour's? A ResolVI model, learned once per sample on
@@ -50,6 +55,20 @@ an NVIDIA GPU or on a Mac's own GPU, estimates it for every iteration and shows 
 clusters (lined up with the run's) or all on one shared map.
 
 ![The mixing check: switched on in a run, its number and history, then shown on the cells as the run goes on](https://raw.githubusercontent.com/jackytamkc/sopa-companion/main/docs/media/mixing.webp)
+
+**Go deeper** on one cell: how much of its RNA reads as a neighbour's, which genes, and which neighbours they point to.
+
+![Go deeper: a cell that looks mixed is clicked, and its window shows the share from neighbours, the genes and the neighbours](https://raw.githubusercontent.com/jackytamkc/sopa-companion/main/docs/media/deeper.webp)
+
+**Test a setting** before you commit to it: the "?" plays what the setting does, then the test runs proseg on a small
+square around the cell, as now and with your value, and shows both results side by side.
+
+![Test a setting: the setting's demo, a value typed, the test running, and the two results side by side](https://raw.githubusercontent.com/jackytamkc/sopa-companion/main/docs/media/test.webp)
+
+**Compare** segmentations of the same sample with the same model: here the run beside the sample's own cell outlines,
+each on its own UMAP, coloured by mixing, then on one shared map.
+
+![Compare: the run beside the sample's own cells, their mixing numbers and UMAPs, coloured by mixing, then on one map](https://raw.githubusercontent.com/jackytamkc/sopa-companion/main/docs/media/compare.webp)
 
 ### Segment from the stain
 
