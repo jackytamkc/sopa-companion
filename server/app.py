@@ -421,12 +421,25 @@ def fresh_token(cfg) -> str:
     return secrets.token_urlsafe(32)
 
 
-class FreshStaticFiles(StaticFiles):
-    """Revalidate the app's own files on every load so a stale module never breaks start-up."""
+# The type each of the page's own files is served with, by its ending. Never left to the computer: Python's mimetypes
+# reads Windows' registry, where .js is often text/plain (an editor or an installer set it), and a browser runs no
+# module served as text: the page would show its bare frame for ever, nothing started.
+PAGE_FILE_TYPES = {".js": "text/javascript; charset=utf-8", ".mjs": "text/javascript; charset=utf-8",
+                   ".css": "text/css; charset=utf-8", ".html": "text/html; charset=utf-8",
+                   ".json": "application/json", ".svg": "image/svg+xml", ".png": "image/png", ".webp": "image/webp",
+                   ".ico": "image/x-icon", ".wasm": "application/wasm", ".woff2": "font/woff2"}
 
-    def file_response(self, *args, **kwargs):
-        response = super().file_response(*args, **kwargs)
+
+class FreshStaticFiles(StaticFiles):
+    """Revalidate the app's own files on every load so a stale module never breaks start-up, and serve each with the
+    type its ending names (PAGE_FILE_TYPES), whatever the computer's own table of file types says."""
+
+    def file_response(self, full_path, *args, **kwargs):
+        response = super().file_response(full_path, *args, **kwargs)
         response.headers["Cache-Control"] = "no-cache"
+        kind = PAGE_FILE_TYPES.get(Path(full_path).suffix.lower())
+        if kind is not None and "content-type" in response.headers:      # a 304 names no type
+            response.headers["Content-Type"] = kind
         return response
 
 

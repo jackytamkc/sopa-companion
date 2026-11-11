@@ -19,7 +19,7 @@ export const COMPARE_TEXT = Object.freeze({
   // ---- the page's header button (button#compare-button, main.js): never greyed out, a press that cannot open says why
   button: 'Compare',
   buttonTooltip: "Set this run's cells beside the sample's other segmentations: their UMAPs and their mixing, side by side.",
-  needsCheck: 'Compare reads every column with the mixing check: switch it on for this run first.',
+  needsCheck: 'Compare reads every column with the ResolVI mixing check: switch it on for this run first.',
   needsRun: "Open a run first: Compare sets its cells beside the sample's other segmentations.",
   // ---- the header
   title: 'Compare',
@@ -35,7 +35,7 @@ export const COMPARE_TEXT = Object.freeze({
   byKind: 'Kind',
   byKindTooltip: 'Each cell in the colour of its kind: one colour is one kind in every column.',
   byMixing: 'Mixing',
-  byMixingTooltip: 'Each cell in the colour of how much of its RNA the mixing model reads as from neighbours, as on the tissue.',
+  byMixingTooltip: 'Each cell in the colour of how much of its RNA the mixing model (ResolVI) reads as from neighbours, as on the tissue.',
   // The Map switch (remembered in this browser) and the third colouring it brings: Clusters on each column's own map,
   // Differences on the one map.
   mapBy: 'Map',

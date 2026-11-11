@@ -112,7 +112,7 @@
 .qc-how summary { color:var(--ink-2); font-size:var(--qc-fs-s); }
 .qc-how ol { padding-left:18px; margin:6px 0 0; font-size:var(--qc-fs-s); }
 .qc-how li { padding-left:2px; margin-bottom:4px; }
-.qc-panel .qc-how-learned { margin:6px 0 0; color:var(--ink-3); font-size:var(--qc-fs-s); }
+.qc-panel .qc-how-learned, .qc-panel .qc-how-credit { margin:6px 0 0; color:var(--ink-3); font-size:var(--qc-fs-s); }
 .qc-panel [hidden],.qc-chip [hidden] { display:none!important; }
 /* The selected cell's row, first in the body (qc-panel.js setCell): its name, Go deeper's button (qc-deeper.css) and its
    mixing line, drawn like the cell card (app.css .cell-card). */

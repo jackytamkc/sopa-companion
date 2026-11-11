@@ -20,7 +20,7 @@ test('every QC string passes the banned-word rule, including expanded templates'
     const checked = key === 'settingHold' ? text.replace('Setting: Prior weight', 'Setting:') : text;
     assert.ok(!/\b(band|depth-matched|compactness)\b/i.test(text) || /^Setting: |^Cell compactness$/.test(text) || key === 'settingCompactness', `${key}: plain words`);
     assert.deepEqual(bannedWords(checked), [], key);
-    if (/resolvi/i.test(text)) assert.equal(key, 'how1', `${key}: the method is named in "How is this estimated?" only`);
+    if (/resolvi/i.test(text)) assert.ok(['title', 'how1', 'howCredit'].includes(key), `${key}: the method is named in the panel's title and in "How is this estimated?" only`);
     // Never the user's own files or notebooks, in any string of the deck, shown or
     // not; nor a sample's code, a tissue or a cell type (the cards' tests are said in words).
     assert.doesNotMatch(text, /notebook|part\s*3|your (own )?files?\b/i, key);
@@ -47,7 +47,7 @@ test('every template fills every named placeholder, with no silent missing value
     }
   }
   assert.throws(() => copy('not_a_copy_key'), RangeError);
-  assert.equal(copy('title'), 'Mixing check');
+  assert.equal(copy('title'), 'ResolVI mixing check');
 });
 
 test('the ban includes every term in the spec, stems, and case variants', () => {
@@ -587,6 +587,7 @@ test('coverage over all the run\'s cells and transcript retention, in plain word
 test('"How is this estimated?" is five short points and how the model was learned, at most 90 words, never naming the user\'s files', () => {
   assert.deepEqual(HOW_KEYS, ['how1', 'how2', 'how3', 'how4', 'how5']);
   assert.equal(QC_TEXT.how1, "A ResolVI model learned this sample's kinds of cells once.");
+  assert.equal(QC_TEXT.howCredit, 'ResolVI is the work of Can Ergen and Nir Yosef (Nature Methods, 2026); the app runs it through scvi-tools.', 'its authors, credited');
   assert.match(QC_TEXT.how3, /same-kind neighbours apart; truly overlapping cells look mixed even with good outlines\.$/, 'its blind spots both ways');
   assert.match(QC_TEXT.how4, /aren't judged; changes are compared like for like/);
   assert.equal(QC_TEXT.how5, "It reads proseg's own count of each cell: the transcripts proseg places in it, less those it reads as background.",

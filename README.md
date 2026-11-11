@@ -26,7 +26,13 @@ import sopa_companion
 app = sopa_companion.launch(sdata)     # sdata: a SpatialData saved to a local .zarr
 ```
 
-Linux, macOS on Apple silicon and Windows; Python 3.12 or 3.13. The full steps are under [Install](#install).
+Linux, macOS on Apple silicon and Windows; Python 3.12 or 3.13. On Windows with an NVIDIA GPU the line has a second
+half, which brings PyTorch's build for that GPU. The full steps are under [Install](#install).
+
+**Status: beta.** The app is public and installs from PyPI; it is still young, so expect rough edges, and please
+report what you find under [Issues](https://github.com/jackytamkc/sopa-companion/issues). Linux is the most used.
+macOS and Windows are newer: the app has been run on a Mac with Apple silicon and on a Windows 11 computer, and the
+ResolVI mixing check has not been tried on a Windows GPU yet.
 
 ## What it does
 
@@ -59,10 +65,10 @@ the UMAP.
 
 ### Check for mixed cells
 
-**The mixing check.** How much of each cell's RNA looks like a neighbour's? The check estimates it for every iteration
+**The ResolVI mixing check.** How much of each cell's RNA looks like a neighbour's? The check estimates it for every iteration
 and shows it on the cells while the run goes on.
 
-*Underneath:* the mixing check is [ResolVI](https://doi.org/10.1101/2025.01.20.634005) (Can Ergen and Nir Yosef), as
+*Underneath:* the mixing check is [ResolVI](https://doi.org/10.1038/s41592-026-03212-9) (Can Ergen and Nir Yosef), as
 [scvi-tools](https://scvi-tools.org) and [scVIVA-Tools](https://github.com/YosefLab/scviva-tools) implement it. ResolVI
 models each cell's counts as its own expression, RNA that reached it from neighbouring cells, and background; the
 companion learns one ResolVI model per sample (on an NVIDIA GPU, or a Mac's own GPU) and reads from it, for every cell,
@@ -115,7 +121,7 @@ the methods you used through it:
 | The sample itself | [SpatialData](https://spatialdata.scverse.org) | Marconato et al., *Nature Methods* 22, 58–62 (2025). [doi:10.1038/s41592-024-02212-x](https://doi.org/10.1038/s41592-024-02212-x) |
 | Proseg Live, the test of a setting | [proseg](https://github.com/dcjones/proseg) | Jones et al., "Cell simulation as cell segmentation", *Nature Methods* 22, 1331–1342 (2025). [doi:10.1038/s41592-025-02697-0](https://doi.org/10.1038/s41592-025-02697-0) |
 | Stain segmentation, training patches | [Cellpose](https://github.com/MouseLand/cellpose) and Cellpose-SAM | Stringer et al., *Nature Methods* 18, 100–106 (2021). [doi:10.1038/s41592-020-01018-x](https://doi.org/10.1038/s41592-020-01018-x). Pachitariu, Rariden and Stringer, "Cellpose-SAM", bioRxiv (2025). [doi:10.1101/2025.04.28.651001](https://doi.org/10.1101/2025.04.28.651001) |
-| The mixing check, Go deeper, Compare's numbers | ResolVI, in [scvi-tools](https://scvi-tools.org) and [scVIVA-Tools](https://github.com/YosefLab/scviva-tools) | Ergen and Yosef, "ResolVI: addressing noise and bias in spatial transcriptomics", bioRxiv (2025). [doi:10.1101/2025.01.20.634005](https://doi.org/10.1101/2025.01.20.634005). Gayoso et al., *Nature Biotechnology* 40, 163–166 (2022). [doi:10.1038/s41587-021-01206-w](https://doi.org/10.1038/s41587-021-01206-w) |
+| The ResolVI mixing check, Go deeper, Compare's numbers | ResolVI, in [scvi-tools](https://scvi-tools.org) and [scVIVA-Tools](https://github.com/YosefLab/scviva-tools) | Ergen and Yosef, "ResolVI: addressing noise and bias in spatial transcriptomics", *Nature Methods* 23, 2003–2014 (2026). [doi:10.1038/s41592-026-03212-9](https://doi.org/10.1038/s41592-026-03212-9). Gayoso et al., *Nature Biotechnology* 40, 163–166 (2022). [doi:10.1038/s41587-021-01206-w](https://doi.org/10.1038/s41587-021-01206-w) |
 | Clusters and UMAP | Leiden (igraph), UMAP (umap-learn), scikit-learn; [RAPIDS](https://rapids.ai) on an NVIDIA GPU | Traag, Waltman and van Eck, *Scientific Reports* 9, 5233 (2019). [doi:10.1038/s41598-019-41695-z](https://doi.org/10.1038/s41598-019-41695-z). McInnes, Healy and Melville, [arXiv:1802.03426](https://arxiv.org/abs/1802.03426) (2018) |
 | The clips on this page | 10x Genomics' public Xenium mouse-brain dataset (CC BY 4.0) | [Fresh Frozen Mouse Brain for Xenium Explorer Demo](https://www.10xgenomics.com/datasets/fresh-frozen-mouse-brain-for-xenium-explorer-demo-1-standard) |
 
@@ -147,16 +153,16 @@ your computer). **Close** in the app, or `app.close()`, ends the session. The re
 ## Requirements
 
 - **Linux**, 64-bit (x86-64 or ARM64), with glibc 2.28 or newer (Ubuntu 20.04, Debian 10, RHEL 8 or later);
-  **macOS** 11 or newer on Apple silicon; or **Windows** 10 or 11, 64-bit (x64). macOS and Windows are new in this alpha
-  and are tested on GitHub's machines, which have no GPU. WSL2 on Windows takes the Linux install.
+  **macOS** 11 or newer on Apple silicon; or **Windows** 10 or 11, 64-bit (x64). macOS and Windows are newer here than
+  Linux: their automatic tests run on GitHub's machines, which have no GPU. WSL2 on Windows takes the Linux install.
 - **Python 3.12 or 3.13**, in the environment where you installed sopa
   ([sopa's guide](https://prism-oncology.github.io/sopa/getting_started/)), or a new one: the install brings sopa.
 - **A modern web browser with WebGL2** (Firefox 133 or newer, Chrome, Edge), on the computer you look at.
 - On Linux, `setpriv` from util-linux, which every common Linux has: the app's helpers end with its session (macOS and
   Windows end them in their own ways).
 - **The mixing check requires a GPU: an NVIDIA GPU, or on a Mac with Apple silicon its own GPU.** It learns each sample
-  once on GPU 0 (PyTorch with CUDA, driver 580 or newer for the CUDA 13 packages; on Windows with PyTorch's CUDA build,
-  not tested yet), or on a Mac without one on Apple's GPU, where it passes a short test of PyTorch's operations first
+  once on GPU 0 (PyTorch with CUDA, driver 580 or newer for the CUDA 13 packages; on Windows PyTorch's CUDA build, which
+  the Windows install line brings, where the check itself is not tested yet), or on a Mac without one on Apple's GPU, where it passes a short test of PyTorch's operations first
   (PyTorch 2.15 needs macOS 15 or later there; on macOS 14 the install brings PyTorch 2.14, which passes it). On an M2
   Ultra it learns about 3.5 times as slowly as on a recent NVIDIA workstation GPU and gives equivalent results (not the
   same cells' numbers: another random stream, as another seed gives), and a model learned there is kept apart from an
@@ -174,7 +180,8 @@ your computer). **Close** in the app, or `app.close()`, ends the session. The re
   the CPU (on a Mac, the CPU).
 - **Everything else runs without a GPU.** Clusters and the UMAP run on the CPU with what sopa installs (about twice a
   second for a region of a few thousand cells, every 3-5 s for a 40,000-cell sample), and faster on the GPU with RAPIDS
-  (Linux only). Stain segmentation uses CUDA, or Apple's GPU on a Mac, when it can and falls back to the CPU (Apple's
+  (Linux only). Stain segmentation uses CUDA (on Windows with PyTorch's CUDA build, which the Windows install line
+  brings), or Apple's GPU on a Mac, when it can and falls back to the CPU (Apple's
   GPU with PyTorch 2.15 needs macOS 15 or later; on macOS 14 the install brings PyTorch 2.14).
 
 ## Install
@@ -185,7 +192,7 @@ What every computer needs:
   Any environment with Python 3.12 or 3.13 does too, sopa's own included.
 
 Then follow the steps for your computer. Each section is complete. To update later, in the same environment:
-`pip install --upgrade "sopa-companion[all]"`.
+`pip install --upgrade "sopa-companion[all]"` (on Windows with an NVIDIA GPU, with the same second half as step 3).
 
 ### macOS (Apple silicon: M1 or later)
 
@@ -236,20 +243,32 @@ macOS 15 or later. On an M2 Ultra, Cellpose ran about 8 times as fast on Apple's
    conda activate sopa
    ```
 
-3. The app, from PyPI (a few minutes):
+3. The app, from PyPI (a few minutes). With an NVIDIA GPU:
 
    ```powershell
-   pip install "sopa-companion[all]"
+   pip install "sopa-companion[all]" --extra-index-url https://download.pytorch.org/whl/cu132
    ```
 
-4. Check it: `sopa-companion --version`.
+   The second half is for PyTorch alone. On Windows, PyPI holds only PyTorch's CPU build; its build for NVIDIA GPUs
+   (CUDA 13.2, its libraries inside) is on PyTorch's own index, and pip takes it from there. Without an NVIDIA GPU,
+   leave the second half off: `pip install "sopa-companion[all]"`.
+4. Check it: `sopa-companion --version`, and with an NVIDIA GPU
+   `python -c "import torch; print(torch.__version__, torch.cuda.is_available())"`, which says `2.15.0+cu132 True`.
+   `False` with `+cu132`: update the NVIDIA driver (the CUDA 13 packages need 580 or newer). A version ending in
+   `+cpu`: the app was installed without the second half, and this puts the GPU build in its place:
+
+   ```powershell
+   pip install --force-reinstall --no-deps torch==2.15.0 --index-url https://download.pytorch.org/whl/cu132
+   ```
+
 5. Try it: `jupyter lab`, a new notebook, the [Quick start](#quick-start). On Windows the notebook shows the app's link
    to click: the app does not open a browser by itself there yet.
 
 On Windows, keep samples in folders with short paths (Windows refuses paths longer than 260 characters unless long paths
-are switched on). Exporting training patches is not available on Windows yet. For the mixing check on an NVIDIA GPU,
-PyTorch's CUDA build replaces the CPU one pip installs on Windows (`pip install torch torchvision --index-url
-https://download.pytorch.org/whl/cu130`); the mixing check on a Windows GPU is not tested yet.
+are switched on). Exporting training patches is not available on Windows yet. With PyTorch's CPU build, Cellpose runs
+on the CPU (slowly: most of a minute for each tile) and the mixing check is not offered; the run's Log says which
+PyTorch it found. The mixing check on a Windows GPU is not tested yet. On Windows this version takes PyTorch 2.14 or
+2.15, the versions PyTorch's CUDA 13.2 index holds.
 
 ### Linux (64-bit: x86-64 or ARM64)
 
@@ -283,6 +302,20 @@ It installs two packages from [PyPI](https://pypi.org/project/sopa-companion/): 
 3.2.0 with live mode and proseg's own count of each cell, GPL v3) built for this computer, with everything they need:
 sopa and spatialdata, Cellpose, PyTorch, and scvi-tools with scviva-tools for the mixing check. The same files, with
 their checksums, are on each [release](https://github.com/jackytamkc/sopa-companion/releases) here.
+
+**Your own PyTorch.** pip keeps a PyTorch that is in the environment already, when its version fits (2.1.1 or newer;
+on Windows 2.14 or 2.15; on macOS 14 with Apple silicon 2.14). To choose the build yourself (another CUDA version for
+an older driver, say), install PyTorch first as [pytorch.org](https://pytorch.org/get-started/locally/) says, then the
+app with the plain line.
+
+**Less than everything.** `[all]` is the three parts together; each can be installed alone:
+
+| Install | What it brings | What works |
+|---|---|---|
+| `pip install sopa-companion` | the app, proseg-live, sopa | Proseg Live with clusters and UMAP |
+| `pip install "sopa-companion[stain]"` | and Cellpose, with PyTorch | and Stain segmentation |
+| `pip install "sopa-companion[qc]"` | and scvi-tools, scviva-tools, with PyTorch | and the ResolVI mixing check, Go deeper, Compare |
+| `pip install "sopa-companion[all]"` | all of them | everything |
 
 ### Another computer
 
@@ -483,7 +516,7 @@ applied. Compare keeps its own fixed recipe. On the CPU, genes used stops at 5,0
 cannot run (`[analysis] python` off, or a Python that lacks what they need) the pane stays shut and Layers > Cells says
 what is missing, or where to set it.
 
-**Mixing check** (off until you switch it on). For every cell, a model's estimate of how much of its RNA (proseg's own
+**ResolVI mixing check** (off until you switch it on). For every cell, a model's estimate of how much of its RNA (proseg's own
 count of it, averaged over proseg's random background draw) looks like it came from neighbouring cells: "18 in 100 cells
 look mixed", the change since the start like for like (the cells proseg started with, their RNA kept as proseg keeps it
 now, each cell against itself at the same depth), and a verdict only when the change is larger than repeat runs give. A

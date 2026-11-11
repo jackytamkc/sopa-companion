@@ -361,7 +361,7 @@ test('cells 3 and 4: the floor and "hardly anything" under 5 %; the look-alike l
 test('every word the window can show passes the check\'s banned-word rule; the method is named once, the user\'s files never', () => {
   for (const text of allTexts()) {
     assert.deepEqual(bannedWords(text), [], text);
-    if (/resolvi/i.test(text)) assert.equal(text, DEEP_TEXT.deepHow1);
+    if (/resolvi/i.test(text)) assert.ok([DEEP_TEXT.deepHow1, DEEP_TEXT.deepHowCredit].includes(text), text);
     assert.doesNotMatch(text, /notebook|part\s*3/i, text);
   }
 });
@@ -643,10 +643,10 @@ test('the full result: headline, bar, legend, sections, the table (virtualised) 
   // How is this worked out?: four short points, the method named only there, then what the sample's model
   // learned from and when; never a notebook.
   const items = w.root.one('details.qc-deeper-how').all('li').map(li => li.textContent);
-  assert.deepEqual(items, [DEEP_TEXT.deepHow1, DEEP_TEXT.deepHow2, DEEP_TEXT.deepHow3, DEEP_TEXT.deepHow4, 'Learned from 42,000 cells on 21 Oct 2026, in 7 min.']);
+  assert.deepEqual(items, [DEEP_TEXT.deepHow1, DEEP_TEXT.deepHow2, DEEP_TEXT.deepHow3, DEEP_TEXT.deepHow4, 'Learned from 42,000 cells on 21 Oct 2026, in 7 min.', DEEP_TEXT.deepHowCredit]);
   w.ctx.qc = { ...w.ctx.qc, sampleModel: { provenance: { notebook_equivalent: false, epochs_run: 429, epochs_notebook: 50, differences: ['more_epochs_small_table'] } } };
   w.deeper.rerender();
-  assert.equal(w.root.one('details.qc-deeper-how').all('li').length, 4, 'a model that does not say how many cells: the four points');
+  assert.equal(w.root.one('details.qc-deeper-how').all('li').length, 5, 'a model that does not say how many cells: the four points and the method\'s authors');
   for (const t of w.deeper.texts()) { assert.deepEqual(bannedWords(t), [], t); assert.doesNotMatch(t, /notebook|part\s*3/i, t); }
   // No kind named for its own RNA: its top genes keep their own line.
   const plain = make({ answer: body => ready(mixed({ seq: body.seq, kind: [] })) });

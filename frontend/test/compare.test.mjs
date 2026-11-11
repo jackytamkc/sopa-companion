@@ -233,7 +233,8 @@ const UNFIXABLE = new RegExp([
   String.raw`\b(?:can(?:no|')t|cannot|won'?t|will\s+not|could\s*n[o']t)\s+(?:be\s+)?(?:fix(?:ed)?|solved?|cured?)\b`,
   String.raw`\b(?:unfixable|not\s+fixable|beyond\s+(?:the\s+reach\s+of\s+)?(?:any\s+)?settings?)\b`,
   String.raw`\bnothing\s+(?:\w+\s+){0,3}(?:will|can|could|would)\s+(?:fix|solve)`, String.raw`\bnot\s+the\s+settings?\b`].join('|'), 'i');
-const NOTEBOOK = /\bnotebook\b|\bpart\s*3\b|\bresolvi\b|\bsame\s+(?:settings|model|recipe)\b/i;
+// The method may be named (the mixing colours' tooltip says whose model it is); the user's notebooks never.
+const NOTEBOOK = /\bnotebook\b|\bpart\s*3\b|\bsame\s+(?:settings|model|recipe)\b/i;
 const STANDARDISED = /\badjusted\s+for\s+depth\b|\bdepth[- ]adjusted\b|\bstandardi[sz]ed\b/i;
 const DEEPER_PLAIN = /\b(band|depth-matched|compactness|posterior|ambient RNA|contaminat)/i;
 const AREAS = /(?:\b[Aa]reas?)\s+[A-Z](?![\w'’])|\b[Cc]ells\s+in\s+[A-Z](?![\w'’])|\bthis\s+area\s+is\b|\bnot\s+just\s+this\s+area\b|\bshows\s+this\s+area\b/i;

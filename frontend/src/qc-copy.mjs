@@ -1,6 +1,7 @@
 /** All Mixing check display copy. Templates use named values, never HTML.
  * The two technical exceptions are the exact Live knobs label in a
- * Setting line, and the method name inside the collapsed explanation only.
+ * Setting line, and the method's name: ResolVI, in the panel's title and inside the collapsed explanation, which
+ * credits its authors (howCredit).
  */
 export const BANNED_WORDS = Object.freeze([
   'diffusion', 'posterior', 'ELBO', 'latent', 'amortis', 'amortiz', 'Procrustes',
@@ -16,7 +17,8 @@ export function bannedWords(text) {
 }
 
 export const QC_TEXT = Object.freeze({
-  title: 'Mixing check',
+  // The method named in the feature's own name: the check is ResolVI's, and says so.
+  title: 'ResolVI mixing check',
   // The switch is remembered: new runs start the way it is left (engine/qc.py configure, prefs.json).
   switchTooltip: 'Turn the mixing check on or off. New runs start the way you leave it.',
   subtitle: "Do cells hold RNA that looks like a neighbour's?",
@@ -320,13 +322,15 @@ export const QC_TEXT = Object.freeze({
   newRunPriorMissing: "New run set up, but this run's starting cells are not offered for this sample: choose them before you press Start.",
   estimate: 'An estimate from a model, not a measured error.',
   howTitle: 'How is this estimated?',
-  // Five short points, then the provenance line (howLearned), at most 90 words in all; the method is named here only.
+  // Five short points, then the provenance line (howLearned), at most 90 words in all, then the method's authors
+  // (howCredit). The method is named here and in the panel's title.
   // Nothing here or anywhere in this deck names files outside the app, nor claims the model is anyone's own.
   how1: "A ResolVI model learned this sample's kinds of cells once.",
   how2: "It estimates how much of each cell's RNA looks like its neighbours'.",
   how3: "It can't tell same-kind neighbours apart; truly overlapping cells look mixed even with good outlines.",
   how4: "Cells under 100 transcripts aren't judged; changes are compared like for like, at equal transcript counts.",
   how5: "It reads proseg's own count of each cell: the transcripts proseg places in it, less those it reads as background.",
+  howCredit: 'ResolVI is the work of Can Ergen and Nir Yosef (Nature Methods, 2026); the app runs it through scvi-tools.',
   // The model's table in plain words (never a zarr key on screen): the provenance line's tooltip (howTable).
   tableXenium: "Xenium's cells", tableOther: "the sample's other cell table",
   howPasses: 'A small table takes more passes over its cells.',

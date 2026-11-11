@@ -154,4 +154,4 @@ jobs:
         run: |
           version="${GITHUB_REF_NAME#v}"
           sed "s/{version}/$version/g; s/{tag}/$GITHUB_REF_NAME/g" ci/release-notes.md > notes.md
-          gh release create "$GITHUB_REF_NAME" release/* --title "SoPA companion $version (alpha)" --notes-file notes.md
+          gh release create "$GITHUB_REF_NAME" release/* --title "SoPA companion $version (beta)" --notes-file notes.md

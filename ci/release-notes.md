@@ -1,4 +1,4 @@
-SoPA companion {version}, for alpha testers: Linux, macOS on Apple silicon and Windows x64.
+SoPA companion {version} (beta): Linux, macOS on Apple silicon and Windows x64.
 
 Install it in the environment your notebooks use (with sopa as its guide installs it,
 https://prism-oncology.github.io/sopa/getting_started/, or a new one: the install brings sopa), on Linux, macOS or
@@ -6,8 +6,13 @@ Windows:
 
     pip install "sopa-companion[all]"
 
+On Windows with an NVIDIA GPU, the same line with PyTorch's own index beside PyPI, which holds its build for that GPU
+(PyPI has only the CPU build for Windows):
+
+    pip install "sopa-companion[all]" --extra-index-url https://download.pytorch.org/whl/cu132
+
 It installs the app and proseg-live from PyPI, and what they need: sopa, Cellpose, PyTorch, and scvi-tools with
-scviva-tools for the mixing check. On macOS 14 with Apple silicon that is PyTorch 2.14, in place of a newer one already
+scviva-tools for the ResolVI mixing check. On macOS 14 with Apple silicon that is PyTorch 2.14, in place of a newer one already
 in the environment (2.15 needs macOS 15 for Apple's GPU); on macOS 15 or later, the newest. On a computer no
 proseg-live wheel fits (an Intel Mac, a Linux older than glibc 2.28), pip builds it from its source: Rust 1.88 or newer
 and a C compiler first. To update: `pip install --upgrade "sopa-companion[all]"`.

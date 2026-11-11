@@ -286,6 +286,35 @@ def test_the_page_has_its_policy_whatever_address_it_is_asked_under():
         assert demo.status_code == 200 and "content-security-policy" not in demo.headers
 
 
+def test_the_page_s_files_have_their_own_types_whatever_the_computer_says(monkeypatch):
+    """Python's mimetypes reads the computer's own table of file types (Windows' registry), where .js is often
+    text/plain: a browser runs no module served as text, and the page showed its bare frame for ever (0.7.0 on Windows; fixed in 0.8.0).
+    The app's files are served with the type their ending names, a 304 still naming none."""
+    import mimetypes
+    from fastapi import FastAPI
+    from sopa_companion.server.app import PAGE_FILE_TYPES, FreshStaticFiles
+    mimetypes.init()
+    for table in mimetypes._db.types_map:          # both tables: restored when the test ends
+        for ending in (".js", ".mjs", ".css", ".html", ".json"):
+            monkeypatch.setitem(table, ending, "text/plain")
+    assert mimetypes.guess_type("main.js")[0] == "text/plain", "the computer says a script is text"
+    app = FastAPI()
+    app.mount("/", FreshStaticFiles(directory=ROOT / "frontend", html=True), name="frontend")
+    client = TestClient(app, base_url=BASE)
+    for path, kind in (("/src/main.js", "text/javascript; charset=utf-8"), ("/src/page-key.mjs", "text/javascript; charset=utf-8"),
+                       ("/src/prior-raster-worker.mjs", "text/javascript; charset=utf-8"),
+                       ("/styles/app.css", "text/css; charset=utf-8"), ("/", "text/html; charset=utf-8"),
+                       ("/index.html", "text/html; charset=utf-8")):
+        answer = client.get(BASE + path)
+        assert answer.status_code == 200 and answer.headers["content-type"] == kind, path
+        assert answer.headers["cache-control"] == "no-cache", path
+        again = client.get(BASE + path, headers={"If-None-Match": answer.headers["etag"]})
+        assert again.status_code == 304 and "content-type" not in again.headers, path
+    # Every kind of file the page is made of has its type here: a new kind is added to the table with the file.
+    shipped = {file.suffix.lower() for folder in ("src", "styles") for file in (ROOT / "frontend" / folder).rglob("*") if file.is_file()}
+    assert shipped | {".html"} <= set(PAGE_FILE_TYPES), sorted(shipped - set(PAGE_FILE_TYPES))
+
+
 def test_no_cookie_ever_reaches_the_app_or_is_set():
     """No route reads a cookie, and another local site's cookies (a browser sends them to every port of 127.0.0.1)
     must never reach a log or a crash report: every Cookie header is dropped before the app."""

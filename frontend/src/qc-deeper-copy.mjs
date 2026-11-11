@@ -6,7 +6,7 @@
 // for the cell, the line of where the glowing transcripts sat at the start (places only, never an outcome; the start's
 // hold in its tooltip), "like for like" kept on the step line. A count inside an outline is never called the cell's. No
 // string names files outside the app. Templates use named values, never HTML. The check's banned-word rule (qc-copy.mjs
-// BANNED_WORDS) holds for every string; "ResolVI" appears only in deepHow1. Strings the check already has (learning,
+// BANNED_WORDS) holds for every string; "ResolVI" appears only in deepHow1 and the credit (deepHowCredit). Strings the check already has (learning,
 // waiting, the failure reasons, Try again, the starting cells' names, "Test a setting here…") are reused from
 // qc-copy.mjs unchanged.
 import {
@@ -129,6 +129,8 @@ export const DEEP_TEXT = Object.freeze({
   deepHow2: "Each gene's transcripts are shared out by how much of that gene each part usually makes: a gene only a neighbour's kind makes goes mostly to that neighbour.",
   deepHow3: "Which neighbour: learned for the starting cells, carried over as outlines change and adjusted for distance (a rougher guide for cells the model didn't learn).",
   deepHow4: "The glow places this split by position: a gene's transcripts close to the neighbour it seems to come from count as likelier. A rough guide.",
+  // Whose method this is: the list's last line (the panel's own words, qc-copy.mjs howCredit).
+  deepHowCredit: 'ResolVI is the work of Can Ergen and Nir Yosef (Nature Methods, 2026); the app runs it through scvi-tools.',
   // ---- states
   deepOff: "Go deeper uses the mixing check, which is off for this run. Switch it on to see where this cell's RNA seems to come from. The first time on a sample it learns that sample's cell types (a few minutes, once).",
   deepSwitchOn: 'Switch on the mixing check',
@@ -588,10 +590,11 @@ export function learnedLine(model) {
   return finite(model.seconds) && model.seconds > 0 ? deep('deepLearnedFrom', { cells: number(cells), date, t: duration(model.seconds) })
     : deep('deepLearnedFromNoTime', { cells: number(cells), date });
 }
-/** Every item of "How is this worked out?", in order: four points, then the provenance line when the model says it. */
+/** Every item of "How is this worked out?", in order: four points, the provenance line when the model says it, then
+ *  the method's authors. */
 export function howItems(model = null) {
   const line = learnedLine(model);
-  return [DEEP_TEXT.deepHow1, DEEP_TEXT.deepHow2, DEEP_TEXT.deepHow3, DEEP_TEXT.deepHow4, ...(line ? [line] : [])];
+  return [DEEP_TEXT.deepHow1, DEEP_TEXT.deepHow2, DEEP_TEXT.deepHow3, DEEP_TEXT.deepHow4, ...(line ? [line] : []), DEEP_TEXT.deepHowCredit];
 }
 /** The header's frame tag for the result shown (section 7.3 A). `frame`: {kind: 'start' | 'live' | 'paused' | 'older' |
  *  'finished' | 'stopped' | 'earlier' | 'snapped', iter, asked, startSource}. */

@@ -24,7 +24,7 @@ test('every Go deeper string passes the banned-word rule, expanded or not; "Reso
   for (const [key, text] of Object.entries({ ...DEEP_TEXT, ...DEEP_TEMPLATES })) {
     assert.deepEqual(bannedWords(text), [], key);
     assert.doesNotMatch(text, /\b(band|depth-matched|compactness|posterior|ambient RNA|contaminat)/i, `${key}: plain words`);
-    if (/resolvi/i.test(text)) assert.equal(key, 'deepHow1', key);
+    if (/resolvi/i.test(text)) assert.ok(['deepHow1', 'deepHowCredit'].includes(key), key);
   }
   for (const text of allTexts()) {
     assert.deepEqual(bannedWords(text), [], text);
@@ -324,7 +324,9 @@ test('chips round down, rows say their share in a few characters, whole numbers 
 test('"How is this worked out?": four short points and the provenance line, the method named once, no notebook', () => {
   const model = { cells: 40000, created: '2026-10-21T10:00:00Z', seconds: 420 };
   const items = howItems(model);
-  assert.equal(items.length, 5);
+  assert.equal(items.length, 6);
+  assert.equal(items[5], DEEP_TEXT.deepHowCredit, 'the method\'s authors last');
+  assert.equal(DEEP_TEXT.deepHowCredit, QC_TEXT.howCredit, 'the panel\'s own credit');
   assert.deepEqual(items.slice(0, 4), [DEEP_TEXT.deepHow1, DEEP_TEXT.deepHow2, DEEP_TEXT.deepHow3, DEEP_TEXT.deepHow4]);
   assert.equal(items[4], 'Learned from 40,000 cells on 21 Oct 2026, in 7 min.', 'keeps ui.qc_provenance_shown\'s numbers on screen');
   assert.match(DEEP_TEXT.deepHow1, /^A ResolVI model splits each cell's RNA into three parts/);
@@ -332,9 +334,10 @@ test('"How is this worked out?": four short points and the provenance line, the 
   assert.match(DEEP_TEXT.deepHow3, /adjusted for distance \(a rougher guide for cells the model didn't learn\)/);
   assert.match(DEEP_TEXT.deepHow4, /The glow places this split by position.*A rough guide\.$/);
   for (const item of items) assert.ok(words(item) <= 30, item);
-  assert.ok(items.reduce((s, t) => s + words(t), 0) <= 110, 'four short points and the line');
+  assert.ok(items.slice(0, 5).reduce((s, t) => s + words(t), 0) <= 110, 'four short points and the line');
   // A model that does not say when or from how many cells: the four points alone.
-  assert.equal(howItems(null).length, 4); assert.equal(howItems({ cells: 5, created: 'not a date' }).length, 4);
+  assert.equal(howItems(null).length, 5); assert.equal(howItems({ cells: 5, created: 'not a date' }).length, 5);
+  assert.equal(howItems(null)[4], DEEP_TEXT.deepHowCredit);
   assert.equal(learnedLine({ cells: 1200, created: '2026-10-01T08:00:00Z' }), 'Learned from 1,200 cells on 1 Oct 2026.');
   assert.equal(learnedLine({ cells: 0, created: '2026-10-01T08:00:00Z', seconds: 3 }), null);
   assert.deepEqual([dateText(null), dateText(''), dateText('x')], [null, null, null]);

@@ -42,7 +42,7 @@ test("the first screen offers the two tools in the intended order, in the same w
   // Cellpose by name: InstanSeg is dormant (the engine offers it only behind an internal switch), so no card names it.
   assert.match(TOOLS.stain.about, /^Find cells in the sample's images with Cellpose, clean them up, and make training patches for the Cellpose GUI\.$/);
   assert.doesNotMatch(cards, /instanseg/i);
-  assert.match(TOOLS.proseg.about, /^Watch proseg build cells from the transcripts, one iteration at a time, with the mixing check and Go deeper\.$/);
+  assert.match(TOOLS.proseg.about, /^Watch proseg build cells from the transcripts, one iteration at a time, with the ResolVI mixing check and Go deeper\.$/);
   // The chosen tool's part is hidden as the page loads (no tool is remembered) and holds the shared Open sample… and Recent.
   const start = between('<section id="tool-start"', '</div>\n    </div>');
   assert.match(start, /^<section id="tool-start" class="tool-start" hidden>/);

@@ -1159,7 +1159,7 @@ test("the chart's start line is named as what it is, proseg's count at iteration
   assert.equal(e.panel.layout.start.label, 'Iteration 0: 10');
 });
 
-test('"How is this estimated?" is collapsed: five short points naming ResolVI there only, then how the model was learned; never the user\'s files', t => {
+test('"How is this estimated?" is collapsed: five short points naming ResolVI, how the model was learned, then the method\'s authors; never the user\'s files', t => {
   const e = browser(t);
   const own = { table: 'xenium_table', other_table: 'table', priors: 'pooled', epochs_run: 50, epochs_notebook: 50, cells: 15000, notebook_equivalent: true, differences: [] };
   e.panel.setState(state(11, 400, { sampleModel: { ...state().sampleModel, table: 'xenium_table', provenance: own } }));
@@ -1168,10 +1168,13 @@ test('"How is this estimated?" is collapsed: five short points naming ResolVI th
   const learned = () => e.panel.how.all().find(n => n.className === 'qc-how-learned');
   assert.deepEqual(items(), [C.how1, C.how2, C.how3, C.how4, C.how5]);
   assert.equal(learned().textContent, 'Learned from 15,000 cells on 17 Oct 2026, in 2 min.'); assert.equal(learned().title, "The cells it learned from: Xenium's cells.");
-  const words = e.panel.how.all().filter(n => ['LI', 'P'].includes(n.tagName)).map(n => n.textContent).join(' ').split(/\s+/).length;
+  const credit = e.panel.how.all().find(n => n.className === 'qc-how-credit');
+  assert.equal(credit.textContent, C.howCredit, 'whose method it is, last');
+  const words = e.panel.how.all().filter(n => ['LI', 'P'].includes(n.tagName) && n !== credit).map(n => n.textContent).join(' ').split(/\s+/).length;
   assert.ok(words <= 90, `${words} words`);
-  const outside = e.panel.root.all().filter(n => !e.panel.how.contains(n) && n.text).map(n => n.text).join(' ');
-  assert.ok(!/resolvi/i.test(outside));
+  // Outside it the method stands in the panel's title alone.
+  const outside = e.panel.root.all().filter(n => !e.panel.how.contains(n) && n.text).map(n => n.text);
+  assert.deepEqual(outside.filter(text => /resolvi/i.test(text)), [C.title]);
   // A small table learned with more passes: the number in the line (more_epochs_small_table); nothing
   // compares the model with anything of the user's, the same model or not.
   const small = { ...own, table: 'table', priors: 'single', epochs_run: 429, notebook_equivalent: false, differences: ['more_epochs_small_table', 'single_table_priors'] };
@@ -1271,7 +1274,7 @@ test('every string the panel and the chip can show (text, titles, labels) is fre
     const allowed = how.has(text) ? text.replace(/ResolVI/g, '') : text;
     // A Setting line's exact Live knobs name is the one exception: only it is taken out, the rest of the line is checked.
     assert.deepEqual(bannedWords(settingChecked(allowed, Object.values(LABELS).map(knobName))), [], text);
-    if (!how.has(text)) assert.ok(!/resolvi/i.test(text), text);
+    if (!how.has(text) && text !== C.title) assert.ok(!/resolvi/i.test(text), text);
   }
   assert.ok(seen.size > 150, `${seen.size} strings checked`);
 });

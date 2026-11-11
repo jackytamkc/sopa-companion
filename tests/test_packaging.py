@@ -29,6 +29,8 @@ ROOT = Path(__file__).resolve().parents[1]
 LAST_SHIPPED = "0.2.0"
 # The one requirement for one system: PyTorch 2.14 on macOS 14 with Apple silicon (pyproject.toml says why).
 MACOS_14_TORCH = 'torch>=2.14,<2.15; sys_platform == "darwin" and platform_machine == "arm64" and "23." in platform_release'
+# And one for Windows: the PyTorch versions that PyTorch's CUDA 13.2 index holds (the README's Windows line names it).
+WINDOWS_TORCH = 'torch>=2.14,<2.16; sys_platform == "win32"'
 
 
 @pytest.fixture(scope="module")
@@ -74,7 +76,7 @@ def test_dependencies_are_ranges_and_keep_desktop_requirements(project):
             if canonicalize_name(req.name) == "proseg-live":
                 assert req.specifier == SpecifierSet(">=3.2.0.1,==3.2.0.*"), text
             elif req.marker is not None:
-                assert text == MACOS_14_TORCH, text
+                assert text in (MACOS_14_TORCH, WINDOWS_TORCH), text
             else:
                 assert all(spec.operator == ">=" for spec in req.specifier), text
     base = {canonicalize_name(req.name): req for req in map(Requirement, metadata["dependencies"])}
@@ -116,6 +118,28 @@ def test_pytorch_2_14_on_macos_14_with_apple_silicon_only_and_a_marker_every_pip
         for comparison in re.split(r"\band\b|\bor\b|[()]", str(Requirement(text).marker or "")):
             if re.search(r"platform_(release|version)", comparison):
                 assert re.search(r"\bin\b", comparison), (text, comparison)
+
+
+def test_pytorch_on_windows_stays_within_the_versions_its_cuda_index_holds(project):
+    """PyPI holds only PyTorch's CPU build for Windows, so the README's Windows line names PyTorch's own index for CUDA
+    13.2 beside PyPI: pip then takes the newest version either holds, which is the CUDA build as long as that index has
+    it (a local version, 2.15.0+cu132, sorts above 2.15.0). [stain] and [qc] keep PyTorch on Windows to the versions
+    that index holds, and only on Windows, so a later PyTorch on PyPI alone cannot bring the CPU build back; the
+    README names the same index and says which versions."""
+    from packaging.version import Version
+    from test_config_docs import README, WINDOWS_GPU_INDEX, WINDOWS_PYPI_INSTALL
+    optional = project["project"]["optional-dependencies"]
+    assert WINDOWS_TORCH in optional["stain"] and WINDOWS_TORCH in optional["qc"]
+    requirement = Requirement(WINDOWS_TORCH)
+    for system, held in [("win32", True), ("linux", False), ("darwin", False)]:
+        assert requirement.marker.evaluate({"sys_platform": system}) is held, system
+    for version, fits in [("2.14.0+cu132", True), ("2.15.0+cu132", True), ("2.15.0", True), ("2.15.0+cpu", True),
+                          ("2.13.1", False), ("2.16.0", False)]:
+        assert requirement.specifier.contains(version) is fits, version
+    assert Version("2.15.0+cu132") > Version("2.15.0+cpu") > Version("2.15.0")
+    assert WINDOWS_GPU_INDEX.endswith("/cu132") and WINDOWS_PYPI_INSTALL in README
+    assert "On Windows this version takes PyTorch 2.14 or 2.15" in " ".join(README.split())
+    assert "Development Status :: 4 - Beta" in project["project"]["classifiers"]
 
 
 def test_the_apps_own_code_is_bsd_3_clause_and_the_citation_names_this_version(project):

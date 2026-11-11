@@ -15,7 +15,7 @@ license-files = ["LICENSE"]
 # Zarr 3.4.1, the floor below, needs Python 3.12.
 requires-python = ">=3.12"
 dynamic = ["version"]
-classifiers = ["Development Status :: 3 - Alpha", "Intended Audience :: Science/Research",
+classifiers = ["Development Status :: 4 - Beta", "Intended Audience :: Science/Research",
                "Topic :: Scientific/Engineering :: Bio-Informatics",
                "Programming Language :: Python :: 3.12", "Programming Language :: Python :: 3.13",
                "Operating System :: POSIX :: Linux", "Operating System :: MacOS", "Operating System :: Microsoft :: Windows"]
@@ -38,10 +38,16 @@ sopa = ["sopa>=2.2.10", "spatialdata>=0.8.0"]
 # linear layer (it needs macOS 15). Later macOS takes the newest PyTorch, and zarr_bridge/devices.py tests Apple's GPU
 # at run time whatever is installed. The Darwin version is matched as text: pip with packaging 22 to 25 stops on any
 # version comparison with platform_release on Linux, whose kernel releases ("6.8.0-45-generic") are not versions.
+# On Windows, PyTorch 2.14 or 2.15: PyPI holds only PyTorch's CPU build there, and the README's Windows line adds
+# PyTorch's own index for CUDA 13.2 (cu132), which holds these versions. pip takes the newest version any index has, so
+# without this range a later PyTorch on PyPI alone would bring the CPU build back; a later release moves the range and
+# the index together.
 stain = ["cellpose>=4",
-         'torch>=2.14,<2.15; sys_platform == "darwin" and platform_machine == "arm64" and "23." in platform_release']
+         'torch>=2.14,<2.15; sys_platform == "darwin" and platform_machine == "arm64" and "23." in platform_release',
+         'torch>=2.14,<2.16; sys_platform == "win32"']
 qc = ["scvi-tools>=1.5", "scviva-tools>=0.1.7", "torch>=2.1.1",
-      'torch>=2.14,<2.15; sys_platform == "darwin" and platform_machine == "arm64" and "23." in platform_release']
+      'torch>=2.14,<2.15; sys_platform == "darwin" and platform_machine == "arm64" and "23." in platform_release',
+      'torch>=2.14,<2.16; sys_platform == "win32"']
 all = ["sopa-companion[sopa,stain,qc]>=0.1"]
 test = ["pytest>=8", "packaging>=24", "jupyter_client>=8", "ipykernel>=6.31"]
 

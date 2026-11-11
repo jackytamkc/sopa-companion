@@ -75,7 +75,7 @@ export const TOOLS = Object.freeze({
     about: "Find cells in the sample's images with Cellpose, clean them up, and make training patches for the Cellpose GUI.",
     open: 'A .zarr written by spatialdata or sopa, with its stain images. It needs no transcripts.' }),
   proseg: Object.freeze({ name: 'Proseg Live',
-    about: 'Watch proseg build cells from the transcripts, one iteration at a time, with the mixing check and Go deeper.',
+    about: 'Watch proseg build cells from the transcripts, one iteration at a time, with the ResolVI mixing check and Go deeper.',
     open: 'A .zarr written by spatialdata or sopa. Proseg needs its transcripts and cell or nucleus shapes to start from.' }),
 });
 

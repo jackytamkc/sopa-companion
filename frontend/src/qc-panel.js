@@ -1510,6 +1510,7 @@ export class QcPanel {
       parent.append(steps);
       const learned = learnedLine(model, provenance, { date: dateText(model?.created), t: duration(model?.seconds) });
       if (learned) { const line = this.el('p', 'qc-how-learned', learned.text); if (learned.tooltip) line.title = learned.tooltip; parent.append(line); }
+      parent.append(this.el('p', 'qc-how-credit', C.howCredit));   // whose method this is (ResolVI's authors)
     });
   }
 

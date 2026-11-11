@@ -23,6 +23,10 @@ ARCHITECTURE = (ROOT / "docs/ARCHITECTURE.md").read_text()
 RELEASE_NOTES = (ROOT / "ci/release-notes.md").read_text()
 # The README's install line, on every system: both packages are on PyPI, and the app's pin brings proseg-live.
 PYPI_INSTALL = 'pip install "sopa-companion[all]"'
+# Windows' line with an NVIDIA GPU: the same, with PyTorch's own index for CUDA 13.2 beside PyPI, which has only
+# PyTorch's CPU build for Windows (pyproject.toml keeps PyTorch on Windows to the versions that index holds).
+WINDOWS_GPU_INDEX = "https://download.pytorch.org/whl/cu132"
+WINDOWS_PYPI_INSTALL = f"{PYPI_INSTALL} --extra-index-url {WINDOWS_GPU_INDEX}"
 # The release job's lines (release.yml, install), before PyPI has the files it is about to publish: a new folder, the
 # run's own two wheels into it (the app, and this computer's proseg-live; a release's download by the same patterns),
 # then one pip line that installs both from those files and what they need from PyPI. pip takes a name given as a file
@@ -182,12 +186,20 @@ def test_the_readme_says_nothing_of_the_dormant_instanseg():
 
 
 def test_the_readme_installs_from_pypi_with_one_line():
-    """The README's Install gives one line on each system (macOS, Windows, Linux), the same: the app with its extras
-    from PyPI, which brings proseg-live; updating is that line with --upgrade. Nothing asks for the GitHub CLI any
-    more. The release's own text gives the same line."""
+    """The README's Install gives one line on each system: the app with its extras from PyPI, which brings
+    proseg-live; on Windows the same line with PyTorch's own index beside PyPI, which brings PyTorch's build for an
+    NVIDIA GPU (PyPI has only its CPU build for Windows), and how to check and to mend an install made without it.
+    Updating is that line with --upgrade. Nothing asks for the GitHub CLI any more. The release's own text gives the
+    same lines."""
     install = section(README, "## Install")
     lines = [line.strip() for line in install.splitlines()]
-    assert lines.count(PYPI_INSTALL) == 3
+    assert lines.count(PYPI_INSTALL) == 2 and lines.count(WINDOWS_PYPI_INSTALL) == 1
+    windows = section(README, "### Windows (64-bit)")
+    assert WINDOWS_PYPI_INSTALL in windows and f"leave the second half off: `{PYPI_INSTALL}`" in words(windows)
+    assert "`2.15.0+cu132 True`" in windows
+    assert f"pip install --force-reinstall --no-deps torch==2.15.0 --index-url {WINDOWS_GPU_INDEX}" in windows
+    assert WINDOWS_PYPI_INSTALL not in section(README, "### Linux (64-bit: x86-64 or ARM64)")
+    assert WINDOWS_PYPI_INSTALL in [line.strip() for line in RELEASE_NOTES.splitlines()]
     assert '`pip install --upgrade "sopa-companion[all]"`' in install
     assert "gh release download" not in README and "gh auth login" not in README and "GitHub CLI" not in README
     assert "](https://prism-oncology.github.io/sopa/getting_started/)" in section(README, "## Requirements")
@@ -285,14 +297,14 @@ def test_the_docs_say_a_training_folder_others_can_write_to_can_run_code_through
 
 def test_the_readme_says_which_computers_and_which_python_the_app_runs_on():
     """What holds today, said plainly: Linux (the release's proseg-live is built for x86-64 and ARM64), macOS on Apple
-    silicon and Windows x64, the last two new in the alpha and tested without a GPU; and the Python that pyproject.toml
+    silicon and Windows x64, the last two newer and tested automatically without a GPU; and the Python that pyproject.toml
     asks for (`requires-python`), where the Requirements list it and where a source folder makes its environment; a
     notebook's install says what else the app needs."""
     floor = tomllib.loads((ROOT / "pyproject.toml").read_text())["project"]["requires-python"].removeprefix(">=")
     requirements = words(section(README, "## Requirements"))
     assert "- **Linux**, 64-bit (x86-64 or ARM64)" in requirements
     assert "**macOS** 11 or newer on Apple silicon; or **Windows** 10 or 11, 64-bit (x64)" in requirements
-    assert "tested on GitHub's machines, which have no GPU" in requirements
+    assert "their automatic tests run on GitHub's machines, which have no GPU" in requirements
     assert f"- **Python {floor} or " in requirements
     assert "on Linux the app needs `setpriv`" in words(section(README, "## Use it from a notebook"))
     assert f"python{floor} -m venv .venv" in section(DEVELOPING, "## From a source folder")
