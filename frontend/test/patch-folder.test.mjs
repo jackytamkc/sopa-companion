@@ -37,7 +37,7 @@ test('every word is plain: the dialog\'s, and the engine\'s refusals it shows', 
   const source = readFileSync(new URL('../../engine/patch_folders.py', import.meta.url), 'utf8');
   const start = source.indexOf('WORDS = {'), block = source.slice(start, source.indexOf('\n}\n', start));
   const found = [...block.matchAll(/^ {4}"(\w+)": "([^"]+)",$/gm)];
-  assert.equal(found.length, 20, 'one line an entry');
+  assert.equal(found.length, 22, 'one line an entry');
   for (const [, name, words] of found) assert.deepEqual(bannedWords(words), [], name);
   assert.equal(holdsLine({patches: 1, sets: 1, samples: ['sample-1'], more: 0}), 'Holds 1 patch of sample-1.');
   assert.equal(holdsLine({patches: 1234, sets: 5, samples: ['a', 'b', 'c'], more: 2}), 'Holds 1,234 patches of a, b, c and 2 more.');
@@ -133,6 +133,9 @@ test('Export here explains an empty field or a refused folder and posts nothing;
   // CPU); before the first, the general words.
   exports[0].onProgress({done: 0, total: 8});
   assert.equal($('patch-folder-progress').textContent, T.exportingLine);
+  // A model missing from this computer is downloaded first, and the dialog says so until a patch is written.
+  exports[0].onProgress({done: 0, total: 8, downloading: true});
+  assert.equal($('patch-folder-progress').textContent, T.exportingDownload);
   exports[0].onProgress({done: 3, total: 8});
   assert.equal($('patch-folder-progress').textContent, 'Exporting patch 3 of 8… You can close this; the export goes on.');
   assert.deepEqual(dialog.snapshot(), {open: true, loading: false, exporting: true, path: '/data/patches', exists: true,

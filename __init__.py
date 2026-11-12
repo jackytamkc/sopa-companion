@@ -30,7 +30,12 @@ from __future__ import annotations
 # registry often says .js is text, and the page then never started); the mixing check is named "ResolVI mixing check"
 # and credits ResolVI's authors; on Windows [stain] and [qc] take PyTorch 2.14 or 2.15, the versions PyTorch's CUDA 13.2
 # index holds (the README's Windows line names it beside PyPI, so one line brings the GPU build there too).
-__version__ = "0.8.0"
+# 0.8.1: an export of training patches no longer fails while Cellpose's model is downloaded
+# first (engine/stain_patches.py: 0.8.0 answered 500, KeyError 'done', and stopped the download); a Cellpose window that
+# Qt cannot open says why, with the line that installs the system's libraries (WSL2, servers); the used link's page says
+# what to run; the README recommends Linux or WSL2, lists the limits on macOS and Windows, and charts the GPU memory the
+# mixing check needs by gene panel (docs/media/mixing-memory.png, from engine/qc.py room_needed_mb).
+__version__ = "0.8.1"
 PROTOCOL = "sopa-companion 1.0"
 # What `sopa_companion.<name>` gives a notebook (api/__init__.py), and sopa's companion extra (sopa.companionapp).
 _API = ("launch", "CompanionApp", "CompanionError", "CompanionStartError", "CompanionWarning", "SOPA_API")

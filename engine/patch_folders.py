@@ -80,7 +80,14 @@ WORDS = {
     "clash": "A file named {file} appeared in {name} while the patches were made. Try again.",
     "gone": "The exported patches are no longer in {folder}. Export them again to go on.",
     "gui_missing": "The Cellpose GUI is not installed where Cellpose runs ({python}). Install it there, then open it again: {command}",
+    "gui_libraries": "its window could not open, because this Linux system is missing the libraries a window needs (common on WSL2 and on servers). On Ubuntu or Debian, install them in a terminal, then open it again: {command}",
+    "gui_display": "its window could not open, because it could not reach this computer's display.",
 }
+
+# What a window of the Cellpose GUI needs from the system on Linux (the libraries the xcb plugin of pip's PyQt6 loads;
+# apt brings the rest of them as these packages' own dependencies). A new WSL2 or server install has few of them.
+GUI_LIBRARIES = ("sudo apt install -y libegl1 libgl1 libdbus-1-3 libfontconfig1 libx11-xcb1 libxkbcommon-x11-0 libxcb-cursor0 "
+                 "libxcb-icccm4 libxcb-keysyms1 libxcb-randr0 libxcb-shape0 libxcb-sync1 libxcb-xfixes0")
 
 
 def words(key: str, **values) -> str:

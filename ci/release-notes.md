@@ -19,6 +19,10 @@ and a C compiler first. To update: `pip install --upgrade "sopa-companion[all]"`
 
 Then, in a notebook: `app = sopa_companion.launch(sdata)` (the README's Quick start).
 
+Use Linux, or WSL2 on a Windows computer: everything in the app runs there. macOS and native Windows have limits (no
+RAPIDS; on native Windows no export of training patches and a link to click in place of a browser window): the README's
+"Limits on macOS and Windows" lists them.
+
 Files (the same as on PyPI, with their checksums):
 - sopa_companion-{version}-py3-none-any.whl: the app.
 - dependencies.txt: the packages the app needs from PyPI.

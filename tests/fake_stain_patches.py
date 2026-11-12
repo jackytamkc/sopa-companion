@@ -11,6 +11,10 @@ class CropModel:
         self.job = job
         emit("hello", cuda_visible_devices=os.environ.get("CUDA_VISIBLE_DEVICES"),
              nice=os.getpriority(os.PRIO_PROCESS, 0), device="cpu")
+        if (self.out / "stain/download-export").exists():      # as Cellpose's model missing from its cache
+            import time
+            emit("progress", message="Downloading the model…")
+            time.sleep(float((self.out / "stain/download-export").read_text()))
 
     def __call__(self, pixels):
         import json

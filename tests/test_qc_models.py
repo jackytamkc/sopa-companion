@@ -9,6 +9,7 @@ import json
 import math
 import os
 from pathlib import Path
+import re
 import sys
 import threading
 import time
@@ -624,6 +625,16 @@ def test_the_room_a_fit_needs_grows_with_the_panel_and_covers_what_was_measured(
         assert 1.1 * peak <= Q.room_needed_mb(genes, cells) <= 1.6 * peak, (genes, cells, peak, Q.room_needed_mb(genes, cells))
     needs = [Q.room_needed_mb(genes, 40000) for genes in (50, 300, 1000, 2500, 5000, 10000, 20000)]
     assert needs == sorted(needs) and all(need % 100 == 0 for need in needs)
+    # The README's table, and the chart beside it (docs/media/mixing-memory.png), say this rule for 100,000 cells.
+    root = Path(Q.__file__).resolve().parents[1]
+    readme = (root / "README.md").read_text()
+    rows = re.findall(r"^  \| ([\d,]+) genes[^|]*\| about ([\d.]+) GB \|$", readme, re.M)
+    assert [int(genes.replace(",", "")) for genes, _ in rows] == [300, 1000, 5000, 10000, 20000]
+    for genes, said in rows:
+        assert float(said) == Q.room_needed_mb(int(genes.replace(",", "")), 100_000) / 1000, (genes, said)
+    assert "every 100,000 more cells add about 0.2 GB" in readme
+    assert Q.room_needed_mb(5000, 200_000) - Q.room_needed_mb(5000, 100_000) == 200
+    assert "/docs/media/mixing-memory.png)" in readme and (root / "docs/media/mixing-memory.png").is_file()
     assert Q.room_needed_mb(5000, 500000) - Q.room_needed_mb(5000, 40000) < Q.room_needed_mb(10000, 40000) - needs[4]
 
 

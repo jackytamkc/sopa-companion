@@ -18,6 +18,8 @@ export const PATCH_FOLDER_TEXT = Object.freeze({
   exportingLine:'Exporting the patches… With model outlines this can take a few minutes. You can close this; the export goes on.',
   // How far an export with the model's outlines is (the panel asks while it runs: GET .../stain/patches "exporting").
   exportingPatch:'Exporting patch {done} of {total}… You can close this; the export goes on.',
+  // The model was not on this computer yet ("exporting" downloading: true, until the first patch is written).
+  exportingDownload:'Downloading the Cellpose model first (only needed once)… You can close this; the export goes on.',
   newHere:'A new folder: it is made when you export.',
   holds:'Holds {n} patches of {samples}.', holdsOne:'Holds 1 patch of {samples}.', more:'{names} and {n} more',
   mixResolution:'Patches cut at another resolution are here too: the Cellpose GUI will train one model on both.',
@@ -237,7 +239,8 @@ export class PatchFolderDialog {
     this.progress.hidden = !working;
     const progress = this.exportProgress;              // once a patch is written, how many of how many
     this.progressText.textContent = !this.exporting ? T.loading : progress?.done >= 1 && progress.total >= progress.done ?
-      T.exportingPatch.replace('{done}', progress.done).replace('{total}', progress.total) : T.exportingLine;
+      T.exportingPatch.replace('{done}', progress.done).replace('{total}', progress.total) :
+      progress?.downloading ? T.exportingDownload : T.exportingLine;
     this.shortcuts.replaceChildren(...(listing?.shortcuts || []).map(shortcut => {
       const button = document.createElement('button'); button.type = 'button';
       button.textContent = shortcut.kind === 'home' ? T.home : T.earlier.replace('{name}', shortcut.name);

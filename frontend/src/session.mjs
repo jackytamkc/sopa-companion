@@ -20,9 +20,9 @@ export const SESSION_TEXT = Object.freeze({
   ended: 'This session has ended. You can close this tab, and start a new one from your notebook.', endedTitle: 'Session ended',
   // A tab with no page key, or one the session's engine no longer takes; a link opened again, or too late.
   signedOutTitle: 'This page is not signed in',
-  signedOut: 'Open this session again from your notebook: call .open() on what sopa_companion.launch returned.',
-  linkUsedTitle: 'This link has been used',
-  linkUsed: 'A link opens the app once, for a short time. For a new one, call .open() on what sopa_companion.launch returned.',
+  signedOut: 'To open the app again, run app.open() in your notebook. (app is the result of sopa_companion.launch.)',
+  linkUsedTitle: 'This link no longer works',
+  linkUsed: 'Each link works only once and expires after a few minutes. To get a new link, run app.open() in your notebook. (app is the result of sopa_companion.launch.)',
   closing: 'Closing…',
   windowTitle: 'SoPA companion · {name}',
   // Finish & save becomes Add.

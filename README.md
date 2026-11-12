@@ -29,10 +29,18 @@ app = sopa_companion.launch(sdata)     # sdata: a SpatialData saved to a local .
 Linux, macOS on Apple silicon and Windows; Python 3.12 or 3.13. On Windows with an NVIDIA GPU the line has a second
 half, which brings PyTorch's build for that GPU. The full steps are under [Install](#install).
 
+> **Use Linux, or WSL2 on a Windows computer.** Everything in the app runs there. macOS and native Windows have limits:
+>
+> - **macOS (Apple silicon):** no RAPIDS, so clusters, the UMAP and the mixing check's scores run on the CPU. The
+>   ResolVI mixing check learns on Apple's GPU, about 3.5 times as slowly as on an NVIDIA GPU.
+> - **Native Windows (without WSL2):** no RAPIDS either. Exporting training patches is not available, the app does not
+>   open the browser by itself (the notebook shows a link), and the ResolVI mixing check is not tested there.
+>
+> The full list is under [Limits on macOS and Windows](#limits-on-macos-and-windows).
+
 **Status: beta.** The app is public and installs from PyPI; it is still young, so expect rough edges, and please
-report what you find under [Issues](https://github.com/jackytamkc/sopa-companion/issues). Linux is the most used.
-macOS and Windows are newer: the app has been run on a Mac with Apple silicon and on a Windows 11 computer, and the
-ResolVI mixing check has not been tried on a Windows GPU yet.
+report what you find under [Issues](https://github.com/jackytamkc/sopa-companion/issues). Linux is the most used, and
+WSL2 on a Windows computer works as Linux does. macOS and native Windows are newer and have the limits above.
 
 ## What it does
 
@@ -155,6 +163,7 @@ your computer). **Close** in the app, or `app.close()`, ends the session. The re
 - **Linux**, 64-bit (x86-64 or ARM64), with glibc 2.28 or newer (Ubuntu 20.04, Debian 10, RHEL 8 or later);
   **macOS** 11 or newer on Apple silicon; or **Windows** 10 or 11, 64-bit (x64). macOS and Windows are newer here than
   Linux: their automatic tests run on GitHub's machines, which have no GPU. WSL2 on Windows takes the Linux install.
+  Linux or WSL2 is recommended: see [Limits on macOS and Windows](#limits-on-macos-and-windows).
 - **Python 3.12 or 3.13**, in the environment where you installed sopa
   ([sopa's guide](https://prism-oncology.github.io/sopa/getting_started/)), or a new one: the install brings sopa.
 - **A modern web browser with WebGL2** (Firefox 133 or newer, Chrome, Edge), on the computer you look at.
@@ -162,27 +171,81 @@ your computer). **Close** in the app, or `app.close()`, ends the session. The re
   Windows end them in their own ways).
 - **The mixing check requires a GPU: an NVIDIA GPU, or on a Mac with Apple silicon its own GPU.** It learns each sample
   once on GPU 0 (PyTorch with CUDA, driver 580 or newer for the CUDA 13 packages; on Windows PyTorch's CUDA build, which
-  the Windows install line brings, where the check itself is not tested yet), or on a Mac without one on Apple's GPU, where it passes a short test of PyTorch's operations first
+  the Windows install line brings; the check itself is not tested on native Windows yet), or on a Mac without one on Apple's GPU, where it passes a short test of PyTorch's operations first
   (PyTorch 2.15 needs macOS 15 or later there; on macOS 14 the install brings PyTorch 2.14, which passes it). On an M2
   Ultra it learns about 3.5 times as slowly as on a recent NVIDIA workstation GPU and gives equivalent results (not the
   same cells' numbers: another random stream, as another seed gives), and a model learned there is kept apart from an
-  NVIDIA GPU's. The free memory a fit takes grows with the gene panel, hardly with the number of cells (on a Mac the
-  cells' counts too, in its own memory):
+  NVIDIA GPU's. The free memory a fit needs grows with the gene panel, and only a little with the number of cells.
+  The app checks for this much free memory on the GPU before it starts learning, for a sample of 100,000 cells
+  (every 100,000 more cells add about 0.2 GB; on a Mac the cells' counts are held in the same memory too):
 
   | Gene panel | Free GPU memory needed |
   |---|---|
-  | 300 genes | about 1.4 GB |
-  | 1,000 genes | about 2.0 GB |
-  | 5,000 genes (Xenium Prime 5K) | about 4.8 GB |
-  | 10,000 genes | about 8.4 GB |
+  | 300 genes | about 1.5 GB |
+  | 1,000 genes | about 2.1 GB |
+  | 5,000 genes (Xenium Prime 5K) | about 5.0 GB |
+  | 10,000 genes | about 8.8 GB |
+  | 20,000 genes | about 16.2 GB |
 
-  For larger panels, use a GPU with more memory. Its scores, Go deeper and Compare run on the GPU with RAPIDS, else on
+  ![The free GPU memory the ResolVI mixing check needs, by the number of genes in the panel: 1.5 GB for 300 genes, 2.1 GB for 1,000, 5.0 GB for 5,000, 8.8 GB for 10,000 and 16.2 GB for 20,000, for a sample of 100,000 cells](https://raw.githubusercontent.com/jackytamkc/sopa-companion/main/docs/media/mixing-memory.png)
+
+  This is free memory, not the card's size: other programs on the same GPU take their share first. The numbers were
+  measured up to 10,000 genes; above that the line is the same rule carried on (dashed in the chart). Its scores, Go deeper and Compare run on the GPU with RAPIDS, else on
   the CPU (on a Mac, the CPU).
 - **Everything else runs without a GPU.** Clusters and the UMAP run on the CPU with what sopa installs (about twice a
   second for a region of a few thousand cells, every 3-5 s for a 40,000-cell sample), and faster on the GPU with RAPIDS
-  (Linux only). Stain segmentation uses CUDA (on Windows with PyTorch's CUDA build, which the Windows install line
+  (Linux, or WSL2 on Windows 11). Stain segmentation uses CUDA (on Windows with PyTorch's CUDA build, which the Windows install line
   brings), or Apple's GPU on a Mac, when it can and falls back to the CPU (Apple's
   GPU with PyTorch 2.15 needs macOS 15 or later; on macOS 14 the install brings PyTorch 2.14).
+
+## Limits on macOS and Windows
+
+**Use Linux if you can, and on a Windows computer WSL2.** Everything in the app runs there, and it is where the app is
+used every day. macOS and native Windows (without WSL2) also run Proseg Live and Stain segmentation, with the limits
+below: some parts are slower, a few are missing, and less has been tested.
+
+| | Linux, or WSL2 on Windows | macOS (Apple silicon) | Native Windows |
+|---|---|---|---|
+| Proseg Live, and saving into your SpatialData | yes | yes | yes |
+| Stain segmentation (Cellpose) on a GPU | NVIDIA GPU | Apple's GPU, where it passes a short test of PyTorch (PyTorch 2.15 needs macOS 15 or later; macOS 14 gets PyTorch 2.14); else the CPU | NVIDIA GPU, with the install line's second half (not run on a Windows GPU yet); else the CPU, slowly |
+| Exporting training patches, and Cellpose's own window on them | yes | yes | not available yet |
+| ResolVI mixing check | NVIDIA GPU | Apple's GPU: about 3.5 times as slow, and a model learned there is kept apart from an NVIDIA GPU's | NVIDIA GPU with the install line's second half; not tested yet |
+| RAPIDS on the GPU: Clusters & UMAP, and the mixing check's scores, Go deeper and Compare | yes, with an NVIDIA GPU | no: these run on the CPU | no: these run on the CPU |
+| Opening the app | your default browser, or a Chrome window of its own; under WSL2 a link to click | your default browser | a link to click |
+| How much it is tested | Linux: used every day, automatic tests. WSL2: tested on a Windows computer with an NVIDIA GPU | one Mac (M2 Ultra, macOS 14); automatic tests without a GPU | one Windows 11 computer; automatic tests without a GPU |
+
+Where the limits come from:
+
+- **RAPIDS is built for Linux alone.** NVIDIA publishes its packages, and
+  [rapids-singlecell](https://rapids-singlecell.scverse.org/en/latest/installation.html) its own, for Linux on x86-64
+  and ARM64; on a Windows computer they run under WSL2 only
+  ([NVIDIA's install guide](https://docs.nvidia.com/datascience/install/): Windows 11, one GPU), and a Mac has no
+  NVIDIA GPU. Without RAPIDS the same steps run on the CPU with scikit-learn, igraph and umap-learn: fine for a region,
+  slower for a whole sample.
+- **PyTorch for Windows on PyPI is the CPU build.** The Windows install line's second half brings the CUDA build;
+  without it Cellpose runs on the CPU and the mixing check is not offered.
+- **A Mac's GPU is Apple's, not NVIDIA's.** Cellpose and the mixing check use it through PyTorch (MPS), which is slower
+  than a recent NVIDIA workstation GPU and needs the PyTorch version that fits the macOS version, which the install
+  chooses. An Intel Mac has no proseg-live package: pip builds it from source ([Another computer](#another-computer)),
+  and the app has not been tested there.
+- **Native Windows is the newest of the three.** Exporting training patches and opening the browser are not written
+  for it yet, and Windows refuses paths longer than 260 characters unless long paths are switched on.
+
+**WSL2 on a Windows computer.** WSL2 is Linux running inside Windows 10 or 11, and the Windows NVIDIA driver passes
+the GPU through to it. In PowerShell run as administrator, `wsl --install` installs it with Ubuntu; open Ubuntu and
+follow the [Linux](#linux-64-bit-x86-64-or-arm64) steps there. Keep your samples in WSL's own files (under your home
+folder there, not under `/mnt/c`), where reading and writing are much faster.
+
+No window opens by itself under WSL2. The cell that ran `sopa_companion.launch` shows a link instead: click it, or
+copy it into your Windows browser. `print(app.url)` prints the same link again. Each link works only once and expires
+after 10 minutes; if the page says the link no longer works, run `app.open()` for a new one (the session keeps running
+meanwhile).
+
+Cellpose's own window (for training on exported patches) needs a few system libraries that a new WSL2 install does
+not have: the line is under [Optional extras](#optional-extras).
+
+WSL2 has been tested on a Windows computer with an NVIDIA GPU, and the app works there as on Linux. If something
+does not, please report it under [Issues](https://github.com/jackytamkc/sopa-companion/issues).
 
 ## Install
 
@@ -191,7 +254,8 @@ What every computer needs:
 - **conda**, if you have none yet: [Miniforge](https://conda-forge.org/download/) (conda with conda-forge's packages).
   Any environment with Python 3.12 or 3.13 does too, sopa's own included.
 
-Then follow the steps for your computer. Each section is complete. To update later, in the same environment:
+Then follow the steps for your computer. Each section is complete. On a Windows computer, WSL2 with the Linux steps is
+recommended ([Limits on macOS and Windows](#limits-on-macos-and-windows)). To update later, in the same environment:
 `pip install --upgrade "sopa-companion[all]"` (on Windows with an NVIDIA GPU, with the same second half as step 3).
 
 ### macOS (Apple silicon: M1 or later)
@@ -227,9 +291,14 @@ On a Mac, Cellpose and the mixing check use Apple's GPU where it passes a short 
 does not, Cellpose runs on the CPU, the mixing check's panel says why, and the run's Log has the details. PyTorch 2.15
 needs macOS 15 (Sequoia) or later for Apple's GPU (on macOS 14 every linear layer would stop the process), so step 3
 installs PyTorch 2.14 on macOS 14, in place of a newer one already in the environment, and the newest PyTorch on
-macOS 15 or later. On an M2 Ultra, Cellpose ran about 8 times as fast on Apple's GPU as on the CPU.
+macOS 15 or later. On an M2 Ultra, Cellpose ran about 8 times as fast on Apple's GPU as on the CPU. A Mac has no
+RAPIDS and no NVIDIA GPU: see [Limits on macOS and Windows](#limits-on-macos-and-windows).
 
 ### Windows (64-bit)
+
+**Recommended: WSL2.** In PowerShell run as administrator, `wsl --install` installs WSL2 with Ubuntu; open Ubuntu and
+follow [Linux](#linux-64-bit-x86-64-or-arm64) there; no window opens by itself, so click the link the notebook shows
+(or `print(app.url)`). The steps below install on native Windows, which has limits ([Limits on macOS and Windows](#limits-on-macos-and-windows)).
 
 1. Miniforge, if you have no conda: run the installer
    [Miniforge3-Windows-x86_64.exe](https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Windows-x86_64.exe).
@@ -326,8 +395,9 @@ step 3's line is the same.
 
 ### Optional extras
 
-**Optional: Clusters & UMAP on the GPU.** They need nothing more on the CPU. On Linux with an NVIDIA GPU they run
-faster with RAPIDS, which for now goes into an environment of its own:
+**Optional: Clusters & UMAP on the GPU.** They need nothing more on the CPU. On Linux, or under WSL2 on Windows 11, with an
+NVIDIA GPU they run faster with RAPIDS (which has no build for macOS or native Windows). For now it goes into an
+environment of its own:
 
 ```bash
 conda create --name rapids python=3.12
@@ -350,7 +420,13 @@ With an older driver or GPU, use `rapids-singlecell-cu12[rapids]` together with 
 install torch --index-url https://download.pytorch.org/whl/cu126`) in the sopa environment.
 
 **Optional: Cellpose's own window**, to train a model on exported patches where you have a desktop:
-`pip install 'cellpose[gui]'` (sopa installs Cellpose without it).
+`pip install 'cellpose[gui]'` (sopa installs Cellpose without it). Under WSL2, and on a Linux computer set up without
+a desktop, the window also needs these system libraries (Ubuntu or Debian); without them it closes as soon as it
+opens, and the app shows this same line:
+
+```bash
+sudo apt install -y libegl1 libgl1 libdbus-1-3 libfontconfig1 libx11-xcb1 libxkbcommon-x11-0 libxcb-cursor0 libxcb-icccm4 libxcb-keysyms1 libxcb-randr0 libxcb-shape0 libxcb-sync1 libxcb-xfixes0
+```
 
 ## Use it from a notebook
 

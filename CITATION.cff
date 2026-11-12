@@ -6,8 +6,8 @@ abstract: "A companion to sopa for Jupyter notebooks: stain segmentation with Ce
 authors:
   - family-names: Tam
     given-names: Jacky
-version: 0.8.0
-date-released: 2026-11-11
+version: 0.8.1
+date-released: 2026-11-12
 license: BSD-3-Clause
 identifiers:
   - type: doi

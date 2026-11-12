@@ -31,7 +31,8 @@ import psutil
 from .. import portable
 from .runs import RunError, atomic_text, now, user_cache
 from . import children, stain_levels
-from .patch_folders import (META, OPEN_DIR, PatchFolders, Source, legacy, read_small, valid_manifest, words)
+from .patch_folders import (GUI_LIBRARIES, META, OPEN_DIR, PatchFolders, Source, legacy, read_small, valid_manifest,
+                            words)
 from .zarr_samples import ZarrSamples
 
 # The Cellpose GUI's own packages (Cellpose's `gui` extra): sopa's sopa[cellpose] installs Cellpose without them, and a
@@ -49,8 +50,16 @@ GUI_ERROR_S = 600.0                     # a GUI that closed with an error is nam
 # on the CPU (Cellpose without a GPU: about a minute a 256-pixel patch) goes on while each patch comes.
 EXPORT_FIRST_S = 900.0
 EXPORT_PATCH_S = 900.0
+# A model that is not in Cellpose's cache yet is downloaded first (about 1 GB for Cellpose-SAM, once for a computer): the
+# export's process says so, and has this long from then to its first patch.
+EXPORT_DOWNLOAD_S = 3600.0
 # The line of a GUI's log that says why it closed: the last that reads as an error (an exception's, Qt's), else its last.
 GUI_ERROR_LINE = re.compile(r"Error\b|error:|Exception\b|[Cc]ould not|[Ff]ailed|[Cc]annot|[Aa]bort|[Ss]egmentation fault")
+# Qt could not open a window at all. Its own last line ("... no Qt platform plugin could be initialized. Reinstalling
+# the application may fix this problem.") says neither why nor what to do, so the reason is said in the app's words:
+# no display to reach (Qt says so on a line of its own), else, on Linux, missing system libraries.
+GUI_NO_WINDOW = re.compile(r"no Qt platform plugin could be initialized|Could not load the Qt platform plugin")
+GUI_NO_DISPLAY = re.compile(r"could not connect to display")
 
 
 def patches_root(runs) -> Path:
@@ -89,7 +98,8 @@ class StainPatches:
         self.log_starts: dict[str, int] = {}
         self.exits: dict[str, tuple[int, float]] = {}
         self.exporting: set[str] = set()       # runs whose patches are being exported (one export per run at a time)
-        self.export_progress: dict[str, dict] = {}   # their patches written so far: {done, total} (status "exporting")
+        # Their patches written so far: {done, total}, with downloading: True while the model is fetched (status "exporting").
+        self.export_progress: dict[str, dict] = {}
         self.lock = threading.RLock()
         self.folders = PatchFolders(self)
         # Where the helper writes an export before the engine copies it into the chosen folder: emptied at each start
@@ -301,7 +311,8 @@ class StainPatches:
         """Why a GUI closed, from its launch's part of the set's cellpose.log (from `start`, the log's size when it
         started; at most its last GUI_LOG_TAIL bytes, opened without following a link): the last line that reads as an
         error, else the last line; for a GUI a signal ended that wrote nothing, the signal's name. Printable
-        characters only, at most 300 of them."""
+        characters only, at most 300 of them. A Qt that could open no window is said in the app's own words, with
+        what to install on Linux (GUI_NO_WINDOW)."""
         lines = []
         try:
             meta = self.records(source)
@@ -323,6 +334,11 @@ class StainPatches:
                 pass
             finally:
                 os.close(meta)
+        if any(GUI_NO_WINDOW.search(line) for line in lines):
+            if any(GUI_NO_DISPLAY.search(line) for line in lines):
+                return words("gui_display")
+            if sys.platform.startswith("linux"):
+                return words("gui_libraries", command=GUI_LIBRARIES)
         said = [line for line in lines if GUI_ERROR_LINE.search(line)] or lines
         if said:
             return said[-1][:300]
@@ -409,8 +425,9 @@ class StainPatches:
     def model_export(self, run, state, manifest, staging, target, exclusions) -> dict:
         """Export with the run's model in its own process (the sopa environment, on the GPU), from `state` (snapshot):
         {stain_runtime, stain_fallback} as it reported them, for export() to keep under the run's lock. Each patch it
-        writes is said ("progress": status's "exporting"); killed after EXPORT_FIRST_S without its first patch, then
-        EXPORT_PATCH_S without the next, or by an engine that closes (Runs.close kills run.process)."""
+        writes is said ("progress": status's "exporting"); killed after EXPORT_FIRST_S without its first patch
+        (EXPORT_DOWNLOAD_S from the moment it says it downloads the model, which is a "progress" with a message and no
+        count), then EXPORT_PATCH_S without the next, or by an engine that closes (Runs.close kills run.process)."""
         request = staging / "request.json"
         atomic_text(request, json.dumps(dict(root=str(state.dir), meta=state.meta, manifest=manifest,
                                              staging=str(staging), target=str(target), exclusions=exclusions)))
@@ -441,12 +458,19 @@ class StainPatches:
                     event = json.loads(line)
                     if event["ev"] == "hello":
                         runtime["stain_runtime"] = event
-                    elif event["ev"] == "progress":            # a patch written: the next has its own time
+                    elif event["ev"] == "progress" and "done" in event:    # a patch written: the next has its own time
                         with self.lock:
                             self.export_progress[state.meta["id"]] = {"done": int(event["done"]),
                                                                       "total": int(event["total"])}
                         timer.cancel()
                         timer = watch(EXPORT_PATCH_S)
+                    elif event["ev"] == "progress":            # no patch yet: the model is downloaded first
+                        with self.lock:
+                            progress = self.export_progress.get(state.meta["id"])
+                            if progress is not None:
+                                progress["downloading"] = True
+                        timer.cancel()
+                        timer = watch(EXPORT_DOWNLOAD_S)
                     elif event["ev"] == "fallback":
                         runtime["stain_fallback"] = event
                     elif event["ev"] == "error":

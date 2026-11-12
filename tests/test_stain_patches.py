@@ -152,7 +152,10 @@ def test_an_export_from_the_model_says_each_patch_and_is_timed_per_patch(patches
     """An export that runs the model (start_from "model": Cellpose on each patch, a minute a 256-pixel patch on a CPU)
     says how far it is while it runs (GET .../stain/patches "exporting": {done, total}, the dialog's "patch 2 of 3"),
     and its process is stopped only when one patch takes too long (EXPORT_PATCH_S), never for the whole export's time:
-    three patches of 0.6 s each pass a 1 s limit; one patch over it fails plainly, with nothing written."""
+    three patches of 0.6 s each pass a 1 s limit; one patch over it fails plainly, with nothing written. A model
+    missing from Cellpose's cache is downloaded first: the process says so with no count ("exporting" downloading:
+    true until the first patch), which is not a failed export (0.8.0 answered 500, KeyError 'done', and stopped the
+    download: a computer without the model could never export)."""
     from sopa_companion.engine import stain_patches as SP
     client, runs, _, _ = patches
     runs.stain.python = sopa_python()
@@ -169,6 +172,7 @@ def test_an_export_from_the_model_says_each_patch_and_is_timed_per_patch(patches
     proposed = client.post(url+"/propose", json={"version": 0}).json()
     assert len(proposed["patches"]) == 3 and client.get(url).json()["exporting"] is None
     (run.dir/"stain/slow-export").write_text("0.6")
+    (run.dir/"stain/download-export").write_text("0.5")
     answers, seen = [], []
     worker = threading.Thread(target=lambda: answers.append(export(client, url, proposed["version"], chosen/"slow")))
     worker.start()
@@ -179,6 +183,8 @@ def test_an_export_from_the_model_says_each_patch_and_is_timed_per_patch(patches
     worker.join()
     assert answers[0].status_code == 200, answers[0].text
     assert {"done": 0, "total": 3} in seen and any(s["done"] in (1, 2) and s["total"] == 3 for s in seen), seen
+    assert {"done": 0, "total": 3, "downloading": True} in seen and not any(s.get("downloading") and s["done"] for s in seen), seen
+    (run.dir/"stain/download-export").unlink()
     assert client.get(url).json()["exporting"] is None
     # One patch past the limit: stopped, said plainly, nothing written into the folder.
     (run.dir/"stain/slow-export").write_text("2.5")
@@ -582,7 +588,11 @@ def test_no_display_fallback_and_fake_detached_launcher(patches, chosen):
 def test_a_gui_that_closes_with_an_error_says_why(patches, chosen):
     """A GUI this engine started that closes with an error: the panel's status names the line of its own launch's log
     that reads as an error (not a line it printed after it); one a signal ended before it wrote anything names the
-    signal, not an earlier launch's line; one that closed as usual, or long ago, names nothing."""
+    signal, not an earlier launch's line; one that closed as usual, or long ago, names nothing. A Qt that could open no
+    window (a new WSL2 or server install without the system's display libraries; no display to reach) is said in the
+    app's words, with the line that installs the libraries, never as Qt's own "Reinstalling the application may fix
+    this problem"."""
+    from sopa_companion.engine.patch_folders import GUI_LIBRARIES
     from sopa_companion.engine.stain_patches import GUI_ERROR_S
     client, runs, _, url = patches
     value = exported(patches, chosen / "patches")
@@ -590,7 +600,7 @@ def test_a_gui_that_closes_with_an_error_says_why(patches, chosen):
     manager.window, manager.launcher = None, "sopa_companion.tests.fake_stain_gui"
     folder = Path(value["exported"]["folder"])
     def launch(flag=None):
-        for name in ("fail-gui", "kill-gui"):
+        for name in ("fail-gui", "kill-gui", "qt-libraries-gui", "qt-display-gui"):
             (folder/name).unlink(missing_ok=True)
         if flag:
             (folder/flag).touch()
@@ -603,6 +613,16 @@ def test_a_gui_that_closes_with_an_error_says_why(patches, chosen):
     process, code = launch("kill-gui")
     failed = client.get(url+"/patches").json()["exported"]["gui_error"]
     assert code == -9 and failed == {"pid": process.pid, "code": -9, "reason": "SIGKILL"}
+    process, code = launch("qt-libraries-gui")
+    reason = client.get(url+"/patches").json()["exported"]["gui_error"]["reason"]
+    assert code == 134 and reason.startswith("its window could not open, because this Linux system is missing the libraries")
+    assert reason.endswith("then open it again: " + GUI_LIBRARIES) and "Reinstalling" not in reason
+    assert GUI_LIBRARIES.startswith("sudo apt install -y ") and "libxcb-cursor0" in GUI_LIBRARIES.split()
+    readme = (Path(__file__).resolve().parents[1] / "README.md").read_text()
+    assert GUI_LIBRARIES in readme.splitlines(), "the README gives the same line under Optional extras"
+    process, code = launch("qt-display-gui")
+    reason = client.get(url+"/patches").json()["exported"]["gui_error"]["reason"]
+    assert code == 134 and reason == "its window could not open, because it could not reach this computer's display."
     manager.exits[str(folder)] = (process.pid, manager.exits[str(folder)][1] - GUI_ERROR_S - 1)
     assert client.get(url+"/patches").json()["exported"]["gui_error"] is None
     process, code = launch()

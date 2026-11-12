@@ -32,8 +32,8 @@ export const SHELL_TEXT = Object.freeze({
   signedOutTitle: 'This page is not signed in',
   signedOut: 'Open SoPA companion again to sign in: run sopa-companion launch, or use its icon.',
   // A link opened again, or too late (a launch code is used once, within seconds or minutes).
-  linkUsedTitle: 'This link has been used',
-  linkUsed: 'A link opens the app once, for a short time. Open SoPA companion again for a new one: run sopa-companion launch, or use its icon.',
+  linkUsedTitle: 'This link no longer works',
+  linkUsed: 'Each link works only once and expires quickly. To open SoPA companion again, run sopa-companion launch or use its icon.',
   // Close when the browser does not let the page close its own tab: the app has closed all the same (its page said
   // goodbye, so the engine shuts down), and the tab says so in place of the page; with the app still open in another
   // tab, the engine goes on for it, and only this tab is closed.
