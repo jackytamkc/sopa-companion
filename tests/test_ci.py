@@ -1,6 +1,7 @@
 """The CI's helpers (ci/) and workflows (.github/workflows/), without CI: the release's dependencies.txt, the check of the
-companion's release files, the squatter's index the release job installs beside, the weekly resolver's sets (with a
-stand-in uv), and workflows that pin every action to a commit and call only files that are here."""
+companion's release files, the release's text with what the version changed (CHANGELOG.md), the squatter's index the
+release job installs beside, the weekly resolver's sets (with a stand-in uv), and workflows that pin every action to a
+commit and call only files that are here."""
 from __future__ import annotations
 
 import base64
@@ -247,8 +248,8 @@ def test_the_workflows_call_files_that_are_here():
     text = "\n".join(path.read_text() for path in WORKFLOWS.glob("*.yml"))
     named = set(re.findall(r"(?:sopa_companion/)?((?:ci|native|tests)/[\w./-]+\.(?:py|sh|md))", text))
     assert {"ci/requirements.py", "ci/check_companion.py", "ci/squat_index.py", "ci/install_smoke.sh", "ci/resolve.sh",
-            "ci/release-notes.md", "native/build.sh", "native/package/check.py", "native/package/smoke.py",
-            "tests/make_mini_harness.py"} <= named
+            "ci/release_text.py", "ci/release-notes.md", "native/build.sh", "native/package/check.py",
+            "native/package/smoke.py", "tests/make_mini_harness.py"} <= named
     for path in named:
         assert (ROOT / path).is_file(), path
     scripts = ("ci/install_smoke.sh", "ci/resolve.sh", "native/build.sh")
@@ -265,6 +266,89 @@ def test_the_workflows_call_files_that_are_here():
         assert recorded.returncode == 0, recorded.stderr
         modes = {line.split("\t")[1]: line.split()[0] for line in recorded.stdout.splitlines()}
         assert modes == dict.fromkeys(scripts, "100755"), modes
+
+
+def release_text():
+    """ci/release_text.py as a module (standard library only)."""
+    sys.path.insert(0, str(CI))
+    try:
+        import release_text
+    finally:
+        sys.path.remove(str(CI))
+    return release_text
+
+
+def test_a_release_s_text_says_what_the_version_changed(tmp_path):
+    """ci/release_text.py writes a release's text: the version's own section of the changelog where the text has its
+    {changes} line, the version filled in, and each wrapped paragraph or list item as one line (GitHub keeps every line
+    break of a release's text), with code and headings left alone. A version without a section, a section without a
+    change, or a text without its {changes} line stops it, and release.yml writes the release's text with it."""
+    module = release_text()
+    changelog = ("# What changed\n\nNewest first.\n\n## 1.2.0 (2030-02-03)\n\nThe first beta.\n\n- **Fixed:** a long\n"
+                 "  line that wraps.\n- A second change.\n\n## 1.1.0 (2030-01-02)\n\n- An older change.\n\n"
+                 "## Before\n\n- **1.0.0:** older still.\n\n## 0.9.0 (2029-12-01)\n\nNothing listed.\n")
+    assert list(module.sections(changelog)) == ["1.2.0", "1.1.0", "0.9.0"]
+    assert module.sections(changelog)["1.1.0"] == ("2030-01-02", "- An older change.")
+    assert module.changes("1.2.0", changelog) == "The first beta.\n\n- **Fixed:** a long\n  line that wraps.\n- A second change."
+    notes = ("App {version}: every system.\n\n## What changed in {version}\n\n{changes}\n\n## Install\n\nInstall it\n"
+             "in your environment:\n\n    pip install app\n    pip check\n\n1. One step\n   that wraps.\n2. Another.\n")
+    assert module.release_text("1.2.0", changelog, notes) == (
+        "App 1.2.0: every system.\n\n## What changed in 1.2.0\n\nThe first beta.\n\n- **Fixed:** a long line that wraps.\n"
+        "- A second change.\n\n## Install\n\nInstall it in your environment:\n\n    pip install app\n    pip check\n\n"
+        "1. One step that wraps.\n2. Another.\n")
+    for version, text, said in (("1.3.0", notes, "CHANGELOG.md has no section for 1.3.0"),
+                                ("1.0.0", notes, "CHANGELOG.md has no section for 1.0.0"),
+                                ("0.9.0", notes, "CHANGELOG.md's section for 0.9.0 lists no change"),
+                                ("1.2.0", notes.replace("{changes}", "The changes."), "one line {changes}")):
+        try:
+            module.release_text(version, changelog, text)
+        except ValueError as error:
+            assert said in str(error), (version, error)
+        else:
+            raise AssertionError(f"{version}: no error")
+    (tmp_path / "changes.md").write_text(changelog)
+    (tmp_path / "notes.md").write_text(notes)
+    script = str(CI / "release_text.py")
+    done = run(sys.executable, script, "1.1.0", str(tmp_path / "changes.md"), str(tmp_path / "notes.md"))
+    assert done.returncode == 0 and "## What changed in 1.1.0\n\n- An older change.\n" in done.stdout, done.stderr
+    missing = run(sys.executable, script, "1.3.0", str(tmp_path / "changes.md"), str(tmp_path / "notes.md"))
+    assert missing.returncode == 1 and missing.stdout == "" and "release_text.py: CHANGELOG.md has no section" in missing.stderr
+    assert run(sys.executable, script, "1.1.0").returncode == 2
+    publish = jobs((WORKFLOWS / "release.yml").read_text())["publish"]
+    assert 'python3 ci/release_text.py "$version" CHANGELOG.md ci/release-notes.md > notes.md' in publish
+    assert "--notes-file notes.md" in publish
+
+
+def test_the_changelog_says_what_this_version_changed():
+    """Every version says what it changed: CHANGELOG.md's first section is this version's (a test build's is the
+    version it leads to), dated as CITATION.cff dates the release, with the versions newest first and at least one change
+    in each. The release check stops a version that has none before anything is published, the release's own text
+    (ci/release-notes.md) has the place for it, and the README and the package's links point to the file."""
+    module = release_text()
+    changelog = (ROOT / "CHANGELOG.md").read_text()
+    found = module.sections(changelog)
+    versions = [tuple(int(part) for part in version.split(".")) for version in found]
+    released = re.sub(r"\.dev\d+$", "", __version__)
+    assert list(found)[0] == released and versions == sorted(versions, reverse=True) and len(set(versions)) == len(versions)
+    dates = [date for date, _ in found.values()]
+    assert dates == sorted(dates, reverse=True)
+    for version in found:
+        assert module.changes(version, changelog), version
+    if released == __version__:
+        assert f"\ndate-released: {found[released][0]}\n" in (ROOT / "CITATION.cff").read_text()
+    # Every heading of a version is one the script reads: a heading written another way would hide its section.
+    assert len(re.findall(r"^## \d", changelog, re.M)) == len(found)
+    check = checker()
+    assert check.changelog_problems(__version__) == [] and check.changelog_problems(released + ".dev3") == []
+    assert check.changelog_problems("99.0.0") == ['CHANGELOG.md has no section for 99.0.0 (a heading "## 99.0.0 (YYYY-MM-DD)")']
+    notes = (CI / "release-notes.md").read_text()
+    assert notes.count("\n{changes}\n") == 1 and "## What changed in {version}\n" in notes
+    text = module.release_text(released, changelog, notes)
+    assert f"## What changed in {released}\n\n" in text and "{" not in text
+    link = "https://github.com/jackytamkc/sopa-companion/blob/main/CHANGELOG.md"
+    assert link in notes and f"[CHANGELOG.md]({link})" in (ROOT / "README.md").read_text()
+    assert PROJECT["urls"]["Changelog"] == link
+    assert "`CHANGELOG.md`" in (ROOT / "docs/DEVELOPING.md").read_text()
 
 
 def jobs(text: str) -> dict[str, str]:

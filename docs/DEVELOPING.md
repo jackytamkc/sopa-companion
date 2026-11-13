@@ -149,7 +149,10 @@ A tag `v<version>` (the app's version, `__init__.py`) runs `.github/workflows/re
 Windows exactly as the README's Install says for each (on Linux beside a squatter's index that both names must never
 come from), runs the notebook route end to end on each (`ci/launch_smoke.py`: a real kernel, proseg, Cellpose, saves,
 close, a killed kernel), runs the app's tests (with `tests/test_portable.py` on macOS and Windows too), and publishes
-the release with `ci/release-notes.md` as its text. Started by hand (`gh workflow run release.yml --ref <branch>`) it
+the release. Its text is what the version changed, then the install and the files (`ci/release_text.py` puts the
+version's section of `CHANGELOG.md` into `ci/release-notes.md`). Every version adds its section at the top of
+`CHANGELOG.md` (`## <version> (<date>)`, then its changes as a list, in a user's words): `ci/check_companion.py` and
+the tests stop a version without one. Started by hand (`gh workflow run release.yml --ref <branch>`) it
 does the same and publishes nothing: the way to try a change on macOS and Windows. A push's own checks stay on Linux.
 Before the release here, the same run publishes both packages on PyPI (`pypi-proseg-live`, then `pypi-companion`) by
 trusted publishing: PyPI knows each project's publisher as this repository's `release.yml` in the environment

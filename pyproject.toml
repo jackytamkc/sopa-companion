@@ -54,6 +54,7 @@ test = ["pytest>=8", "packaging>=24", "jupyter_client>=8", "ipykernel>=6.31"]
 [project.urls]
 Homepage = "https://github.com/jackytamkc/sopa-companion"
 Issues = "https://github.com/jackytamkc/sopa-companion/issues"
+Changelog = "https://github.com/jackytamkc/sopa-companion/blob/main/CHANGELOG.md"
 Archive = "https://doi.org/10.5281/zenodo.24116670"
 
 [project.scripts]

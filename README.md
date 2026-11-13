@@ -40,7 +40,8 @@ half, which brings PyTorch's build for that GPU. The full steps are under [Insta
 
 **Status: beta.** The app is public and installs from PyPI; it is still young, so expect rough edges, and please
 report what you find under [Issues](https://github.com/jackytamkc/sopa-companion/issues). Linux is the most used, and
-WSL2 on a Windows computer works as Linux does. macOS and native Windows are newer and have the limits above.
+WSL2 on a Windows computer works as Linux does. macOS and native Windows are newer and have the limits above. What
+changed in each version: [CHANGELOG.md](https://github.com/jackytamkc/sopa-companion/blob/main/CHANGELOG.md).
 
 ## What it does
 
@@ -257,6 +258,8 @@ What every computer needs:
 Then follow the steps for your computer. Each section is complete. On a Windows computer, WSL2 with the Linux steps is
 recommended ([Limits on macOS and Windows](#limits-on-macos-and-windows)). To update later, in the same environment:
 `pip install --upgrade "sopa-companion[all]"` (on Windows with an NVIDIA GPU, with the same second half as step 3).
+What changed in each version is in
+[CHANGELOG.md](https://github.com/jackytamkc/sopa-companion/blob/main/CHANGELOG.md).
 
 ### macOS (Apple silicon: M1 or later)
 

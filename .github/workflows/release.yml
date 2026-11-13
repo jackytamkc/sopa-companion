@@ -153,5 +153,6 @@ jobs:
         env: {GH_TOKEN: "${{ github.token }}"}
         run: |
           version="${GITHUB_REF_NAME#v}"
-          sed "s/{version}/$version/g; s/{tag}/$GITHUB_REF_NAME/g" ci/release-notes.md > notes.md
+          # What this version changed (its section of CHANGELOG.md), then the install and the files.
+          python3 ci/release_text.py "$version" CHANGELOG.md ci/release-notes.md > notes.md
           gh release create "$GITHUB_REF_NAME" release/* --title "SoPA companion $version (beta)" --notes-file notes.md

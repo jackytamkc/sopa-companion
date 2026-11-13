@@ -13,6 +13,8 @@ fails. DIST must hold
 - the source distribution, sopa_companion-VERSION.tar.gz;
 - dependencies.txt (ci/requirements.py): the wheel's own requirements without an extra and without proseg-live, the same
   set, so the release's first pip line installs exactly what the second one needs.
+CHANGELOG.md must say what VERSION changed (a section of its own with at least one change: ci/release_text.py, which
+writes the release's text from it); a test build's version (0.8.1.dev1) is asked for the version it leads to (0.8.1).
 Standard library only.
 """
 from __future__ import annotations
@@ -139,6 +141,21 @@ def dependencies_problems(path: Path, base: set[str]) -> list[str]:
     return problems
 
 
+def changelog_problems(version: str) -> list[str]:
+    """CHANGELOG.md says what this version changed: every release carries its notes (the release's text and the
+    page on GitHub take them from there). A test build (0.8.1.dev1) is asked for the version it leads to."""
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    try:
+        import release_text
+    finally:
+        sys.path.pop(0)
+    try:
+        release_text.changes(re.sub(r"\.dev\d+$", "", version), (ROOT / "CHANGELOG.md").read_text(encoding="utf-8"))
+    except (OSError, ValueError) as error:
+        return [str(error)]
+    return []
+
+
 def main(argv: list[str]) -> int:
     if not 1 <= len(argv) <= 2:
         print(__doc__.split("\n\n")[1], file=sys.stderr)
@@ -146,6 +163,7 @@ def main(argv: list[str]) -> int:
     dist = Path(argv[0])
     version = argv[1] if len(argv) == 2 else code_version()
     problems = [] if version == code_version() else [f"the version given, {version}, is not the code's, {code_version()}"]
+    problems += changelog_problems(code_version())
     wheel = dist / f"{PACKAGE}-{version}-py3-none-any.whl"
     base: set[str] = set()
     if wheel.is_file():

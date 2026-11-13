@@ -1,5 +1,13 @@
 SoPA companion {version} (beta): Linux, macOS on Apple silicon and Windows x64.
 
+## What changed in {version}
+
+{changes}
+
+What changed in every version: https://github.com/jackytamkc/sopa-companion/blob/main/CHANGELOG.md
+
+## Install
+
 Install it in the environment your notebooks use (with sopa as its guide installs it,
 https://prism-oncology.github.io/sopa/getting_started/, or a new one: the install brings sopa), on Linux, macOS or
 Windows:
@@ -23,7 +31,10 @@ Use Linux, or WSL2 on a Windows computer: everything in the app runs there. macO
 RAPIDS; on native Windows no export of training patches and a link to click in place of a browser window): the README's
 "Limits on macOS and Windows" lists them.
 
-Files (the same as on PyPI, with their checksums):
+## Files
+
+The same files as on PyPI, with their checksums:
+
 - sopa_companion-{version}-py3-none-any.whl: the app.
 - dependencies.txt: the packages the app needs from PyPI.
 - proseg_live-3.2.0.3-py3-none-manylinux_2_28_x86_64.whl and proseg_live-3.2.0.3-py3-none-manylinux_2_28_aarch64.whl:
